@@ -1,1 +1,1 @@
-Initial Commit for team 6, CMSC447
+Initial Commit for team 6, CMSC447 - Brandon
