@@ -1,1 +1,1 @@
-# CS447-Project-Repository
+Initial Commit for team 6, CMSC447
