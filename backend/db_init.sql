@@ -4,6 +4,7 @@ CREATE TABLE adult_patient  (
 	apat_id int PRIMARY KEY AUTO_INCREMENT,
     apat_name varchar(50) NOT NULL,
     apat_age int NOT NULL,
+    apat_bday int NOT NULL,
     apat_user varchar(50) NOT NULL,
     apat_pass varchar(200) NOT NULL,
     apat_addr varchar(100) NOT NULL,
@@ -15,6 +16,7 @@ CREATE TABLE under_patient  (
 	upat_id int PRIMARY KEY AUTO_INCREMENT,
     upat_name varchar(50) NOT NULL,
     upat_age int NOT NULL,
+    upat_bday int NOT NULL,
     upat_user varchar(50) NOT NULL,
     upat_pass varchar(200) NOT NULL,
     upat_addr varchar(100) NOT NULL,
@@ -27,6 +29,7 @@ CREATE TABLE therapist  (
     adm_id int,
     ther_name varchar(50) NOT NULL,
     ther_age int NOT NULL,
+    ther_bday int NOT NULL,
     ther_user varchar(50) NOT NULL,
     ther_pass varchar(100) NOT NULL,
     ther_email varchar(50) NOT NULL,
@@ -63,7 +66,7 @@ CREATE TABLE u_appt  (
     uappt_type varchar(50) NOT NULL,
     uappt_time int NOT NULL,
     uappt_duration int NOT NULL,
-    uappt_location varchar(100) NOT NULL,
+    uappt_addr varchar(100) NOT NULL,
     FOREIGN KEY (ther_id) REFERENCES therapist(ther_id),
     FOREIGN KEY (upat_id) REFERENCES under_patient(upat_id)
 );

@@ -27,4 +27,9 @@ app.config['MYSQL_DB'] = os.getenv('MYSQL_DB')
 
 @app.route('/test', methods=['POST'])
 def test():
+    """
+    Tester function, can delete when unneeded.
+    :param None:
+    :return jsonify: message saying "test"
+    """
     return jsonify("message", "test")
