@@ -11,12 +11,13 @@ CORS(app)
 
 # Edit the .env file to correct these to appropriate credentials
 # Should have mysql installed, if using wsl, make sure the users and privileges
-# for the host is set to '%' instead of 'localhost'
+# for the host is set to '%' instead of 'localhost' inside the app.
 app.config['MYSQL_HOST'] = os.getenv('MYSQL_HOST')
 app.config['MYSQL_USER'] = os.getenv('MYSQL_USER')
 app.config['MYSQL_PASSWORD'] = os.getenv('MYSQL_PASSWORD')
 app.config['MYSQL_DB'] = os.getenv('MYSQL_DB')
 
+mysql = MySQL(app)
 
 # Basic use of mysql in python: 
 # cur = mysql.connector.cursor()
@@ -24,12 +25,15 @@ app.config['MYSQL_DB'] = os.getenv('MYSQL_DB')
 # mysql.connection.commit()
 # cur.close()
 
-
-@app.route('/test', methods=['POST'])
+@app.route('/test', methods=['GET'])
 def test():
     """
     Tester function, can delete when unneeded.
     :param None:
     :return jsonify: message saying "test"
     """
-    return jsonify("message", "test")
+    return jsonify("This is a test message", ["lists work too"], {"also": "dictionaries"})
+
+
+if __name__ == '__main__':
+    app.run(debug=True)

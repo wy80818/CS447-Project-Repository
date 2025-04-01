@@ -48,7 +48,7 @@ CREATE TABLE a_to_u_pat_relation  (
     FOREIGN KEY (apat_id) REFERENCES adult_patient(apat_id),
     FOREIGN KEY (upat_id) REFERENCES under_patient(upat_id)
 );
-CREATE TABLE a_appt  (
+CREATE TABLE adult_appt  (
 	aappt_id int PRIMARY KEY AUTO_INCREMENT,
     ther_id int,
     apat_id int,
@@ -59,7 +59,7 @@ CREATE TABLE a_appt  (
     FOREIGN KEY (ther_id) REFERENCES therapist(ther_id),
     FOREIGN KEY (apat_id) REFERENCES adult_patient(apat_id)
 );
-CREATE TABLE u_appt  (
+CREATE TABLE under_appt  (
 	uappt_id int PRIMARY KEY AUTO_INCREMENT,
     ther_id int,
     upat_id int,
