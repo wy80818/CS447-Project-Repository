@@ -2,6 +2,7 @@ CREATE DATABASE therapist_scheduler_db;
 USE therapist_scheduler_db;
 CREATE TABLE adult_patient  (
 	apat_id int PRIMARY KEY AUTO_INCREMENT,
+    ther_id int,
     apat_name varchar(50) NOT NULL,
     apat_age int NOT NULL,
     apat_bday int NOT NULL,
@@ -10,10 +11,12 @@ CREATE TABLE adult_patient  (
     apat_addr varchar(100) NOT NULL,
     apat_insur varchar(50) NOT NULL,
     apat_primcare varchar(50) NOT NULL,
-    apat_email varchar(50) NOT NULL
+    apat_email varchar(50) NOT NULL,
+    FOREIGN KEY (ther_id) REFERENCES therapist(ther_id)
 );
 CREATE TABLE under_patient  (
 	upat_id int PRIMARY KEY AUTO_INCREMENT,
+    ther_id int,
     upat_name varchar(50) NOT NULL,
     upat_age int NOT NULL,
     upat_bday int NOT NULL,
@@ -22,7 +25,8 @@ CREATE TABLE under_patient  (
     upat_addr varchar(100) NOT NULL,
     upat_insur varchar(50) NOT NULL,
     upat_primcare varchar(50) NOT NULL,
-    upat_email varchar(50) NOT NULL
+    upat_email varchar(50) NOT NULL,
+    FOREIGN KEY (ther_id) REFERENCES therapist(ther_id)
 );
 CREATE TABLE therapist  (
 	ther_id int PRIMARY KEY AUTO_INCREMENT,
