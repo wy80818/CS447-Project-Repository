@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_mysqldb import MySQL
 from dotenv import load_dotenv
+import hashlib
 import os 
 
 load_dotenv()
@@ -34,6 +35,46 @@ def test():
     """
     return jsonify("This is a test message", ["lists work too"], {"also": "dictionaries"})
 
+@app.route('/login', methods=['POST'])
+def login():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"message": "Invalid request"}), 400
+
+        username = data.get('username')
+        password = data.get('password')
+
+        user_roles = [
+            ("administrator", "adm_user", "adm_pass"),
+            ("therapist", "ther_user", "ther_pass"),
+            ("adult_patient", "apat_user", "apat_pass"),
+            ("under_patient", "upat_user", "upat_pass")
+        ]
+
+        cur = mysql.connection.cursor()
+
+        for role, user_field, pass_field in user_roles:
+            query = f"SELECT * FROM {role} WHERE {user_field} = %s AND {pass_field} = %s"
+            cur.execute(query, (username, password))
+            result = cur.fetchone()
+
+            if result:
+                cur.close()
+                return jsonify({
+                    "message": f"Login successful as {role}",
+                    "role": role
+                }), 200
+
+        cur.close()
+        # ❌ Bad credentials = return 401
+        return jsonify({"message": "Incorrect username or password"}), 401
+
+    except Exception as e:
+        print("Login error:", e)
+        return jsonify({"message": "Server error"}), 500
+
+
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5050, debug=True)

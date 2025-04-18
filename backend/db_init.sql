@@ -1,5 +1,22 @@
 CREATE DATABASE therapist_scheduler_db;
 USE therapist_scheduler_db;
+CREATE TABLE administrator  (
+	adm_id int PRIMARY KEY AUTO_INCREMENT,
+    adm_name varchar(50) NOT NULL,
+    adm_user varchar(50) NOT NULL,
+    adm_pass varchar(50) NOT NULL
+);
+CREATE TABLE therapist  (
+	ther_id int PRIMARY KEY AUTO_INCREMENT,
+    adm_id int,
+    ther_name varchar(50) NOT NULL,
+    ther_age int NOT NULL,
+    ther_bday int NOT NULL,
+    ther_user varchar(50) NOT NULL,
+    ther_pass varchar(100) NOT NULL,
+    ther_email varchar(50) NOT NULL,
+    FOREIGN KEY (adm_id) REFERENCES administrator(adm_id)
+);
 CREATE TABLE adult_patient  (
 	apat_id int PRIMARY KEY AUTO_INCREMENT,
     ther_id int,
@@ -27,23 +44,6 @@ CREATE TABLE under_patient  (
     upat_primcare varchar(50) NOT NULL,
     upat_email varchar(50) NOT NULL,
     FOREIGN KEY (ther_id) REFERENCES therapist(ther_id)
-);
-CREATE TABLE therapist  (
-	ther_id int PRIMARY KEY AUTO_INCREMENT,
-    adm_id int,
-    ther_name varchar(50) NOT NULL,
-    ther_age int NOT NULL,
-    ther_bday int NOT NULL,
-    ther_user varchar(50) NOT NULL,
-    ther_pass varchar(100) NOT NULL,
-    ther_email varchar(50) NOT NULL,
-    FOREIGN KEY (adm_id) REFERENCES adminstrator(adm_id)
-);
-CREATE TABLE administrator  (
-	adm_id int PRIMARY KEY AUTO_INCREMENT,
-    adm_name varchar(50) NOT NULL,
-    adm_user varchar(50) NOT NULL,
-    adm_pass varchar(50) NOT NULL
 );
 CREATE TABLE a_to_u_pat_relation  (
 	atupr_id int PRIMARY KEY AUTO_INCREMENT,
