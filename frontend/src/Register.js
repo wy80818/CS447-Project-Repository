@@ -1,17 +1,15 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // 👈 import useNavigate
 
-export default function Login() {
+export default function Register() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("");
-  const navigate = useNavigate(); // 👈 create navigate function
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:5050/login", {
+      const response = await fetch("http://localhost:5050/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -22,23 +20,19 @@ export default function Login() {
       const data = await response.json();
 
       if (response.ok) {
-        setStatus("✅ " + data.message);
+        setStatus("✅ " + data.message); // e.g. "Registration successful"
       } else {
-        setStatus("❌ " + data.message);
+        setStatus("❌ " + data.message); // e.g. "Username already exists"
       }
     } catch (error) {
-      console.error("Error during fetch:", error);
+      console.error("Error during registration:", error);
       setStatus("❌ Could not connect to server.");
     }
   };
 
-  const handleRegisterRedirect = () => {
-    navigate("/register"); // 👈 redirect to register page
-  };
-
   return (
     <div style={{ padding: "2rem" }}>
-      <h2>Login</h2>
+      <h2>Register</h2>
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -54,8 +48,7 @@ export default function Login() {
           onChange={(e) => setPassword(e.target.value)}
           required
         /><br />
-        <button type="submit">Log In</button>
-        <button type="button" onClick={handleRegisterRedirect}>Register</button> {/* 👈 updated */}
+        <button type="submit">Register</button>
       </form>
       <p>{status}</p>
     </div>

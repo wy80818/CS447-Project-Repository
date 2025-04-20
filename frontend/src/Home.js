@@ -3,8 +3,24 @@ import { useNavigate } from "react-router-dom";
 export default function Home() {
   const navigate = useNavigate();
 
-  const goToLogin = () => {
-    navigate("/login");
+  const goToLogin = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/init-db", {
+        method: "POST"
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log(data.message); // Or show a toast/message
+        navigate("/login");
+      } else {
+        alert("❌ Failed to initialize database: " + data.message);
+      }
+    } catch (error) {
+      console.error("Initialization error:", error);
+      alert("❌ Could not connect to backend.");
+    }
   };
 
   return (

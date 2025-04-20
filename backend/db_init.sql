@@ -1,12 +1,14 @@
-CREATE DATABASE therapist_scheduler_db;
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '0000';
+FLUSH PRIVILEGES;
+CREATE DATABASE IF NOT EXISTS therapist_scheduler_db;
 USE therapist_scheduler_db;
-CREATE TABLE administrator  (
+CREATE TABLE IF NOT EXISTS administrator  (
 	adm_id int PRIMARY KEY AUTO_INCREMENT,
     adm_name varchar(50) NOT NULL,
     adm_user varchar(50) NOT NULL,
     adm_pass varchar(50) NOT NULL
 );
-CREATE TABLE therapist  (
+CREATE TABLE IF NOT EXISTS therapist  (
 	ther_id int PRIMARY KEY AUTO_INCREMENT,
     adm_id int,
     ther_name varchar(50) NOT NULL,
@@ -17,7 +19,7 @@ CREATE TABLE therapist  (
     ther_email varchar(50) NOT NULL,
     FOREIGN KEY (adm_id) REFERENCES administrator(adm_id)
 );
-CREATE TABLE adult_patient  (
+CREATE TABLE IF NOT EXISTS adult_patient  (
 	apat_id int PRIMARY KEY AUTO_INCREMENT,
     ther_id int,
     apat_name varchar(50) NOT NULL,
@@ -31,7 +33,7 @@ CREATE TABLE adult_patient  (
     apat_email varchar(50) NOT NULL,
     FOREIGN KEY (ther_id) REFERENCES therapist(ther_id)
 );
-CREATE TABLE under_patient  (
+CREATE TABLE IF NOT EXISTS under_patient  (
 	upat_id int PRIMARY KEY AUTO_INCREMENT,
     ther_id int,
     upat_name varchar(50) NOT NULL,
@@ -45,14 +47,14 @@ CREATE TABLE under_patient  (
     upat_email varchar(50) NOT NULL,
     FOREIGN KEY (ther_id) REFERENCES therapist(ther_id)
 );
-CREATE TABLE a_to_u_pat_relation  (
+CREATE TABLE IF NOT EXISTS a_to_u_pat_relation  (
 	atupr_id int PRIMARY KEY AUTO_INCREMENT,
     apat_id int,
     upat_id int,
     FOREIGN KEY (apat_id) REFERENCES adult_patient(apat_id),
     FOREIGN KEY (upat_id) REFERENCES under_patient(upat_id)
 );
-CREATE TABLE adult_appt  (
+CREATE TABLE IF NOT EXISTS adult_appt  (
 	aappt_id int PRIMARY KEY AUTO_INCREMENT,
     ther_id int,
     apat_id int,
@@ -63,7 +65,7 @@ CREATE TABLE adult_appt  (
     FOREIGN KEY (ther_id) REFERENCES therapist(ther_id),
     FOREIGN KEY (apat_id) REFERENCES adult_patient(apat_id)
 );
-CREATE TABLE under_appt  (
+CREATE TABLE IF NOT EXISTS under_appt  (
 	uappt_id int PRIMARY KEY AUTO_INCREMENT,
     ther_id int,
     upat_id int,

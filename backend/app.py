@@ -1,39 +1,52 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from flask_mysqldb import MySQL
 from dotenv import load_dotenv
-import hashlib
-import os 
+import pymysql
+import os
 
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-# Edit the .env file to correct these to appropriate credentials
-# Should have mysql installed, if using wsl, make sure the users and privileges
-# for the host is set to '%' instead of 'localhost' inside the app.
-app.config['MYSQL_HOST'] = os.getenv('MYSQL_HOST')
-app.config['MYSQL_USER'] = os.getenv('MYSQL_USER')
-app.config['MYSQL_PASSWORD'] = os.getenv('MYSQL_PASSWORD')
-app.config['MYSQL_DB'] = os.getenv('MYSQL_DB')
 
-mysql = MySQL(app)
+@app.route('/init-db', methods=['POST'])
+def init_db():
+    try:
+        print("Connecting to MySQL without selecting a DB first...")
+        connection = pymysql.connect(
+            host=os.getenv('MYSQL_HOST', 'localhost'),
+            user=os.getenv('MYSQL_USER', 'root'),
+            password=os.getenv('MYSQL_PASSWORD', '0000'),
+            port=int(os.getenv('MYSQL_PORT', 3306)),
+            autocommit=True
+        )
 
-# Basic use of mysql in python: 
-# cur = mysql.connector.cursor()
-# cur.execute("SQL COMMAND")
-# mysql.connection.commit()
-# cur.close()
+        cursor = connection.cursor()
+        print("Creating DB if not exists...")
+        cursor.execute("CREATE DATABASE IF NOT EXISTS therapist_scheduler_db;")
 
-@app.route('/test', methods=['GET'])
-def test():
-    """
-    Tester function, can delete when unneeded.
-    :param None:
-    :return jsonify: message saying "test"
-    """
-    return jsonify("This is a test message", ["lists work too"], {"also": "dictionaries"})
+        cursor.execute("USE therapist_scheduler_db;")
+
+        print("Reading and executing SQL commands...")
+        with open('db_init.sql', 'r') as f:
+            sql_commands = f.read().split(';')
+
+            for command in sql_commands:
+                command = command.strip()
+                if command:
+                    cursor.execute(command)
+
+        cursor.close()
+        connection.close()
+
+        print("✅ Database and tables initialized!")
+        return jsonify({"message": "Database initialized from .sql file!"}), 200
+
+    except Exception as e:
+        print("❌ Initialization error:", e)
+        return jsonify({"message": f"Failed to initialize database: {e}"}), 500
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -52,7 +65,15 @@ def login():
             ("under_patient", "upat_user", "upat_pass")
         ]
 
-        cur = mysql.connection.cursor()
+        connection = pymysql.connect(
+            host=os.getenv('MYSQL_HOST', 'localhost'),
+            user=os.getenv('MYSQL_USER', 'root'),
+            password=os.getenv('MYSQL_PASSWORD', '0000'),
+            port=int(os.getenv('MYSQL_PORT', 3306)),
+            database=os.getenv('MYSQL_DB', 'therapist_scheduler_db'),
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        cur = connection.cursor()
 
         for role, user_field, pass_field in user_roles:
             query = f"SELECT * FROM {role} WHERE {user_field} = %s AND {pass_field} = %s"
@@ -61,13 +82,14 @@ def login():
 
             if result:
                 cur.close()
+                connection.close()
                 return jsonify({
                     "message": f"Login successful as {role}",
                     "role": role
                 }), 200
 
         cur.close()
-        # ❌ Bad credentials = return 401
+        connection.close()
         return jsonify({"message": "Incorrect username or password"}), 401
 
     except Exception as e:
@@ -78,6 +100,7 @@ def login():
 @app.route('/register', methods=['POST'])
 def register():
     pass
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5050, debug=True)
