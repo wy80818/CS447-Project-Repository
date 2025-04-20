@@ -40,15 +40,16 @@ export default function Login() {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
-        /><br /><br />
+        /><br />
         <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-        /><br /><br />
+        /><br />
         <button type="submit">Log In</button>
+        <button type="submit">Register</button>
       </form>
       <p>{status}</p>
     </div>

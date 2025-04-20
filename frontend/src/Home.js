@@ -11,7 +11,7 @@ export default function Home() {
     <div style={{ textAlign: "center", padding: "4rem" }}>
       <h1>Group 6's Appointment Scheduler</h1>
       <button onClick={goToLogin} style={{ marginTop: "2rem", padding: "0.5rem 1rem" }}>
-        Login
+        Start
       </button>
     </div>
   );
