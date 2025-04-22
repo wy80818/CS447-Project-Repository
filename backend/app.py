@@ -3,11 +3,18 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 import pymysql
 import os
+import hashlib
 
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
+
+
+def sha256_hash(string):
+    enc = string.encode('utf-8')
+    hash = hashlib.sha256(enc).hexdigest()
+    return hash
 
 
 @app.route('/init-db', methods=['POST'])
@@ -56,7 +63,7 @@ def login():
             return jsonify({"message": "Invalid request"}), 400
 
         username = data.get('username')
-        password = data.get('password')
+        password = sha256_hash(data.get('password'))
 
         user_roles = [
             ("administrator", "adm_user", "adm_pass"),
@@ -105,7 +112,7 @@ def register():
             return jsonify({"message": "Invalid request"}), 400
 
         username = data.get('username')
-        password = data.get('password')
+        password = sha256_hash(data.get('password'))
         role = data.get('role')
 
         # Extended fields
