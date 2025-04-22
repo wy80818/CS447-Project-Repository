@@ -66,10 +66,10 @@ def login():
         password = sha256_hash(data.get('password'))
 
         user_roles = [
-            ("administrator", "adm_user", "adm_pass"),
-            ("therapist", "ther_user", "ther_pass"),
-            ("adult_patient", "apat_user", "apat_pass"),
-            ("under_patient", "upat_user", "upat_pass")
+            ("administrator", "adm_user", "adm_pass", "adm_id"),
+            ("therapist", "ther_user", "ther_pass", "ther_id"),
+            ("adult_patient", "apat_user", "apat_pass", "apat_id"),
+            ("under_patient", "upat_user", "upat_pass", "uapt_id")
         ]
 
         connection = pymysql.connect(
@@ -82,7 +82,7 @@ def login():
         )
         cur = connection.cursor()
 
-        for role, user_field, pass_field in user_roles:
+        for role, user_field, pass_field, id_col in user_roles:
             query = f"SELECT * FROM {role} WHERE {user_field} = %s AND {pass_field} = %s"
             cur.execute(query, (username, password))
             result = cur.fetchone()
@@ -92,7 +92,8 @@ def login():
                 connection.close()
                 return jsonify({
                     "message": f"Login successful as {role}",
-                    "role": role
+                    "role": role,
+                    "id": result[id_col]
                 }), 200
 
         cur.close()
@@ -188,6 +189,32 @@ def register():
         print("Register error:", e)
         return jsonify({"message": "Server error during registration"}), 500
 
+@app.route("/save-availability", methods=["POST"])
+def save_availability():
+    try:
+        data = request.json
+        therapist_id = data.get("therapistId")
+        date = data.get("date")
+        location = data.get("location")
+        slots = data.get("slots")
 
+        cur = connection.cursor()
+        for slot in slots:
+            cur.execute(
+                """
+                INSERT INTO availability (therapist_id, date, location, time_slot)
+                VALUES (%s, %s, %s, %s)
+                """,
+                (therapist_id, date, location, slot)
+            )
+
+        connection.commit()
+        cur.close()
+        return jsonify({"message": "Availability saved!"}), 200
+
+    except Exception as e:
+        print("Error saving availability:", e)
+        return jsonify({"error": "Internal server error"}), 500
+        
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5050, debug=True)

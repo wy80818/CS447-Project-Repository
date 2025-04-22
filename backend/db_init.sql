@@ -76,3 +76,11 @@ CREATE TABLE IF NOT EXISTS under_appt  (
     FOREIGN KEY (ther_id) REFERENCES therapist(ther_id),
     FOREIGN KEY (upat_id) REFERENCES under_patient(upat_id)
 );
+CREATE TABLE IF NOT EXISTS availability (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  therapist_id INT,
+  date DATE,
+  location VARCHAR(100),
+  time_slot VARCHAR(20),
+  FOREIGN KEY (therapist_id) REFERENCES therapist(ther_id)
+);

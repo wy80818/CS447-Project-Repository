@@ -10,7 +10,7 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     try {
       const response = await fetch("http://localhost:5050/login", {
         method: "POST",
@@ -19,11 +19,23 @@ export default function Login() {
         },
         body: JSON.stringify({ username, password })
       });
-
+  
       const data = await response.json();
-
+  
       if (response.ok) {
+        // ✅ Save user info to localStorage
+        localStorage.setItem("userRole", data.role);
+        localStorage.setItem("userId", data.id);
+  
         setStatus("✅ " + data.message);
+  
+        // ✅ Redirect based on role
+        if (data.role === "therapist") {
+          navigate("/therapistdashboard"); // or your TherapistDashboard route
+        } else {
+          // 👇 Optional: route others differently
+          navigate("/home"); // or another path for admins/patients
+        }
       } else {
         setStatus("❌ " + data.message);
       }
@@ -32,6 +44,7 @@ export default function Login() {
       setStatus("❌ Could not connect to server.");
     }
   };
+  
 
   const handleRegisterRedirect = () => {
     navigate("/register"); // 👈 redirect to register page
