@@ -99,7 +99,87 @@ def login():
 
 @app.route('/register', methods=['POST'])
 def register():
-    pass
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"message": "Invalid request"}), 400
+
+        username = data.get('username')
+        password = data.get('password')
+        role = data.get('role')
+
+        # Extended fields
+        name = data.get('name')
+        age = data.get('age')
+        birthday = data.get('birthday')
+        address = data.get('address')
+        insurance = data.get('insurance')
+        primary_care = data.get('primaryCare')
+        email = data.get('email')
+
+        # Validate role
+        if role not in ["administrator", "therapist", "adult_patient", "under_patient"]:
+            return jsonify({"message": "Invalid role"}), 400
+
+        # Connect to DB
+        connection = pymysql.connect(
+            host=os.getenv('MYSQL_HOST', 'localhost'),
+            user=os.getenv('MYSQL_USER', 'root'),
+            password=os.getenv('MYSQL_PASSWORD', '0000'),
+            port=int(os.getenv('MYSQL_PORT', 3306)),
+            database=os.getenv('MYSQL_DB', 'therapist_scheduler_db'),
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        cur = connection.cursor()
+
+        # Role-based logic
+        if role == "administrator":
+            # Basic admin registration
+            cur.execute("SELECT * FROM administrator WHERE adm_user = %s", (username,))
+            if cur.fetchone():
+                return jsonify({"message": "Username already exists"}), 400
+            cur.execute("INSERT INTO administrator (adm_user, adm_pass) VALUES (%s, %s)", (username, password))
+
+        elif role == "therapist":
+            cur.execute("SELECT * FROM therapist WHERE ther_user = %s", (username,))
+            if cur.fetchone():
+                return jsonify({"message": "Username already exists"}), 400
+            cur.execute("""
+                INSERT INTO therapist (ther_name, ther_age, ther_bday, ther_user, ther_pass, ther_email)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (name, age, birthday, username, password, email))
+
+        elif role == "adult_patient":
+            cur.execute("SELECT * FROM adult_patient WHERE apat_user = %s", (username,))
+            if cur.fetchone():
+                return jsonify({"message": "Username already exists"}), 400
+            cur.execute("""
+                INSERT INTO adult_patient (
+                    apat_name, apat_age, apat_bday, apat_user, apat_pass,
+                    apat_addr, apat_insur, apat_primcare, apat_email
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (name, age, birthday, username, password, address, insurance, primary_care, email))
+
+        elif role == "under_patient":
+            cur.execute("SELECT * FROM under_patient WHERE upat_user = %s", (username,))
+            if cur.fetchone():
+                return jsonify({"message": "Username already exists"}), 400
+            cur.execute("""
+                INSERT INTO under_patient (
+                    upat_name, upat_age, upat_bday, upat_user, upat_pass,
+                    upat_addr, upat_insur, upat_primcare, upat_email
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (name, age, birthday, username, password, address, insurance, primary_care, email))
+
+        connection.commit()
+        cur.close()
+        connection.close()
+
+        return jsonify({"message": f"Registered as {role}!"}), 200
+
+    except Exception as e:
+        print("Register error:", e)
+        return jsonify({"message": "Server error during registration"}), 500
 
 
 if __name__ == '__main__':

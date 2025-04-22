@@ -1,4 +1,4 @@
-ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '0000';
+ALTER USER 'root'@'localhost' IDENTIFIED BY '0000';
 FLUSH PRIVILEGES;
 CREATE DATABASE IF NOT EXISTS therapist_scheduler_db;
 USE therapist_scheduler_db;
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS therapist  (
     adm_id int,
     ther_name varchar(50) NOT NULL,
     ther_age int NOT NULL,
-    ther_bday int NOT NULL,
+    ther_bday DATE NOT NULL,
     ther_user varchar(50) NOT NULL,
     ther_pass varchar(100) NOT NULL,
     ther_email varchar(50) NOT NULL,
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS adult_patient  (
     ther_id int,
     apat_name varchar(50) NOT NULL,
     apat_age int NOT NULL,
-    apat_bday int NOT NULL,
+    apat_bday DATE NOT NULL,
     apat_user varchar(50) NOT NULL,
     apat_pass varchar(200) NOT NULL,
     apat_addr varchar(100) NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS under_patient  (
     ther_id int,
     upat_name varchar(50) NOT NULL,
     upat_age int NOT NULL,
-    upat_bday int NOT NULL,
+    upat_bday DATE NOT NULL,
     upat_user varchar(50) NOT NULL,
     upat_pass varchar(200) NOT NULL,
     upat_addr varchar(100) NOT NULL,

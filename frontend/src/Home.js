@@ -5,7 +5,7 @@ export default function Home() {
 
   const goToLogin = async () => {
     try {
-      const response = await fetch("http://localhost:5000/init-db", {
+      const response = await fetch("http://localhost:5050/init-db", {
         method: "POST"
       });
 
