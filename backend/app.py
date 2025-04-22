@@ -138,7 +138,7 @@ def register():
             cur.execute("SELECT * FROM administrator WHERE adm_user = %s", (username,))
             if cur.fetchone():
                 return jsonify({"message": "Username already exists"}), 400
-            cur.execute("INSERT INTO administrator (adm_user, adm_pass) VALUES (%s, %s)", (username, password))
+            cur.execute("INSERT INTO administrator (adm_name, adm_user, adm_pass) VALUES (%s, %s, %s)", (name, username, password))
 
         elif role == "therapist":
             cur.execute("SELECT * FROM therapist WHERE ther_user = %s", (username,))

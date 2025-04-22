@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "./Register.css";  // Ensure you have a matching CSS file for styles
 
 export default function Register() {
   const [role, setRole] = useState("administrator");
@@ -34,8 +35,8 @@ export default function Register() {
           address,
           insurance,
           primaryCare,
-          email
-        })
+          email,
+        }),
       });
 
       const data = await response.json();
@@ -47,33 +48,78 @@ export default function Register() {
   };
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h2>Register</h2>
-      <form onSubmit={handleSubmit}>
-        <select value={role} onChange={(e) => setRole(e.target.value)}>
-          <option value="administrator">Administrator</option>
-          <option value="therapist">Therapist</option>
-          <option value="adult_patient">Adult Patient</option>
-          <option value="under_patient">Underage Patient</option>
-        </select><br /><br />
-        <input placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} required /><br />
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required /><br />
-        <input placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} /><br />
-        <input type="number" placeholder="Age" value={age} onChange={(e) => setAge(e.target.value)} /><br />
-        <input type="date" placeholder="Birthday" value={birthday} onChange={(e) => setBirthday(e.target.value)} /><br />
-        <input placeholder="Address" value={address} onChange={(e) => setAddress(e.target.value)} /><br />
-        <input placeholder="Insurance" value={insurance} onChange={(e) => setInsurance(e.target.value)} /><br />
-        <input placeholder="Primary Care Provider" value={primaryCare} onChange={(e) => setPrimaryCare(e.target.value)} /><br />
-        <input placeholder="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} /><br />
-        <button type="submit">Register</button>
+    <div className="register-wrapper">
+      <div className="register-card">
+        <h2>User Registration Form</h2>
+        <form onSubmit={handleSubmit}>
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            required
+          >
+            <option value="administrator">Administrator</option>
+            <option value="therapist">Therapist</option>
+            <option value="adult_patient">Adult Patient</option>
+            <option value="under_patient">Underage Patient</option>
+          </select>
+          <input
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <input
+            placeholder="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <input
+            type="number"
+            placeholder="Age"
+            value={age}
+            onChange={(e) => setAge(e.target.value)}
+          />
+          <input
+            type="date"
+            placeholder="Birthday"
+            value={birthday}
+            onChange={(e) => setBirthday(e.target.value)}
+          />
+          <input
+            placeholder="Address"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+          />
+          <input
+            placeholder="Insurance"
+            value={insurance}
+            onChange={(e) => setInsurance(e.target.value)}
+          />
+          <input
+            placeholder="Primary Care Provider"
+            value={primaryCare}
+            onChange={(e) => setPrimaryCare(e.target.value)}
+          />
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <button type="submit">Register</button>
         </form>
-        
-        <button onClick={goToLogin} style={{ marginTop: "1rem" }}>
+        <button onClick={goToLogin} className="back-to-login-button">
           Back to Login
         </button>
-
-      
-      <p>{status}</p>
+        <p>{status}</p>
+      </div>
     </div>
   );
 }

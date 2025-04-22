@@ -1,3 +1,4 @@
+import "./Login.css";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom"; // 👈 import useNavigate
 
@@ -37,27 +38,35 @@ export default function Login() {
   };
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        /><br />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        /><br />
-        <button type="submit">Log In</button>
+    <div className="login-wrapper">
+      <div className="login-card">
+        <div className="login-avatar">
+          <img 
+          src ="https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_1280.png"
+          alt = "User Avatar"
+          />
+        </div>
+        <h2>Login</h2>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button type="submit">Log In</button>
+        </form>
         <button type="button" onClick={handleRegisterRedirect}>Register</button> {/* 👈 updated */}
-      </form>
-      <p>{status}</p>
+        <p className="login-status">{status}</p>
+      </div>
     </div>
   );
 }
