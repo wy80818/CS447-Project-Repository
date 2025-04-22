@@ -10,6 +10,7 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
+
 def sha256_hash(string):
     enc = string.encode('utf-8')
     hash = hashlib.sha256(enc).hexdigest()
