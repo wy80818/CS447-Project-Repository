@@ -198,7 +198,17 @@ def save_availability():
         location = data.get("location")
         slots = data.get("slots")
 
+        # Connect to DB
+        connection = pymysql.connect(
+            host=os.getenv('MYSQL_HOST', 'localhost'),
+            user=os.getenv('MYSQL_USER', 'root'),
+            password=os.getenv('MYSQL_PASSWORD', '0000'),
+            port=int(os.getenv('MYSQL_PORT', 3306)),
+            database=os.getenv('MYSQL_DB', 'therapist_scheduler_db'),
+            cursorclass=pymysql.cursors.DictCursor
+        )
         cur = connection.cursor()
+
         for slot in slots:
             cur.execute(
                 """
@@ -210,11 +220,12 @@ def save_availability():
 
         connection.commit()
         cur.close()
+        connection.close()
         return jsonify({"message": "Availability saved!"}), 200
 
     except Exception as e:
         print("Error saving availability:", e)
         return jsonify({"error": "Internal server error"}), 500
-        
+
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5050, debug=True)

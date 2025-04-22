@@ -10,7 +10,7 @@ const TherapistDashboard = () => {
   const [location, setLocation] = useState('');
   const [availability, setAvailability] = useState([]);
 
-  const therapistId = localStorage.getItem("therapistId") || 'therapist123';
+  const therapistId = localStorage.getItem("userID");
 
   const addAvailability = () => {
     if (!startTime || !endTime || !location) {
