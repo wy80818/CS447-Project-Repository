@@ -7,8 +7,8 @@ const APatientDashboard = () => {
   const [date, setDate] = useState(new Date());
   const [availableAppointments, setAvailableAppointments] = useState([]);
   const [requested, setRequested] = useState([]);
-  const patientId = localStorage.getItem("userID");
-  const role = localStorage.getItem("userRole");
+  const patientId = sessionStorage.getItem("userID");
+  const role = sessionStorage.getItem("userRole");
 
   useEffect(() => {
     if (role !== "adult_patient") {
@@ -56,7 +56,7 @@ const APatientDashboard = () => {
       <div className="title-bar">
         <h1 className="title">Adult Patient Dashboard</h1>
         <button className="dashboard-button" onClick={() => {
-          localStorage.clear();
+          sessionStorage.clear();
           window.location.href = '/';
         }}>
           Log Out

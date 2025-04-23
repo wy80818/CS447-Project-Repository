@@ -24,8 +24,8 @@ export default function Login() {
   
       if (response.ok) {
         // ✅ Save user info to localStorage
-        localStorage.setItem("userRole", data.role);
-        localStorage.setItem("userId", data.id);
+        sessionStorage.setItem("userRole", data.role);
+        sessionStorage.setItem("userId", data.id);
   
         setStatus("✅ " + data.message);
   

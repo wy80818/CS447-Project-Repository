@@ -2,7 +2,7 @@ import { useState } from "react";
 import "./Register.css";  // Ensure you have a matching CSS file for styles
 
 export default function Register() {
-  const [role, setRole] = useState("administrator");
+  const [role, setRole] = useState("adult_patient");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -57,7 +57,6 @@ export default function Register() {
             onChange={(e) => setRole(e.target.value)}
             required
           >
-            <option value="administrator">Administrator</option>
             <option value="therapist">Therapist</option>
             <option value="adult_patient">Adult Patient</option>
             <option value="under_patient">Underage Patient</option>

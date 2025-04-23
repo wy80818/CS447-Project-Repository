@@ -8,7 +8,7 @@ const TherapistDashboard = () => {
   const [availability, setAvailability] = useState([]);
   const [appointments, setAppointments] = useState([]);
 
-  const therapistId = localStorage.getItem("userID");
+  const therapistId = sessionStorage.getItem("userID");
 
   useEffect(() => {
     if (therapistId) {
