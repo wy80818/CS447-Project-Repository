@@ -32,9 +32,10 @@ export default function Login() {
         // ✅ Redirect based on role
         if (data.role === "therapist") {
           navigate("/therapistdashboard"); // or your TherapistDashboard route
-        } else {
-          // 👇 Optional: route others differently
-          navigate("/home"); // or another path for admins/patients
+        } else if (data.role === "adult_patient"){
+          navigate("/patientdashboard"); // to patient dashboard
+        }else{
+          navigate("/home");
         }
       } else {
         setStatus("❌ " + data.message);

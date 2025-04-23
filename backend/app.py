@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import pymysql
 import os
 import hashlib
+from datetime import date as dt_date
 
 load_dotenv()
 
@@ -226,6 +227,124 @@ def save_availability():
     except Exception as e:
         print("Error saving availability:", e)
         return jsonify({"error": "Internal server error"}), 500
+
+@app.route("/get-availability/<int:therapist_id>", methods=["GET"])
+def get_availability(therapist_id):
+    try:
+        connection = pymysql.connect(
+            host=os.getenv("MYSQL_HOST"),
+            user=os.getenv("MYSQL_USER"),
+            password=os.getenv("MYSQL_PASSWORD"),
+            database=os.getenv("MYSQL_DB"),
+            port=int(os.getenv("MYSQL_PORT")),
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        cur = connection.cursor()
+        cur.execute("SELECT date, location, time_slot FROM availability WHERE therapist_id = %s", (therapist_id,))
+        results = cur.fetchall()
+        cur.close()
+        connection.close()
+        return jsonify(results), 200
+    except Exception as e:
+        return jsonify({"error": "Internal server error"}), 500
+
+@app.route("/get-appointments/<int:therapist_id>", methods=["GET"])
+def get_appointments(therapist_id):
+    try:
+        connection = pymysql.connect(
+            host=os.getenv("MYSQL_HOST"),
+            user=os.getenv("MYSQL_USER"),
+            password=os.getenv("MYSQL_PASSWORD"),
+            database=os.getenv("MYSQL_DB"),
+            port=int(os.getenv("MYSQL_PORT")),
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        cur = connection.cursor()
+        cur.execute("SELECT * FROM appointments WHERE therapist_id = %s", (therapist_id,))
+        results = cur.fetchall()
+        cur.close()
+        connection.close()
+        return jsonify(results), 200
+    except Exception as e:
+        return jsonify({"error": "Internal server error"}), 500
+
+@app.route("/handle-appointment/<int:appointment_id>", methods=["POST"])
+def handle_appointment(appointment_id):
+    try:
+        decision = request.json.get("decision")
+        if decision not in ["accept", "deny"]:
+            return jsonify({"error": "Invalid decision"}), 400
+
+        connection = pymysql.connect(
+            host=os.getenv("MYSQL_HOST"),
+            user=os.getenv("MYSQL_USER"),
+            password=os.getenv("MYSQL_PASSWORD"),
+            database=os.getenv("MYSQL_DB"),
+            port=int(os.getenv("MYSQL_PORT")),
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        cur = connection.cursor()
+        cur.execute("UPDATE appointments SET status = %s WHERE id = %s", (decision, appointment_id))
+        connection.commit()
+        cur.close()
+        connection.close()
+        return jsonify({"message": f"Appointment {decision}ed successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": "Internal server error"}), 500
+
+@app.route('/available-appointments', methods=['GET'])
+def available_appointments():
+    try:
+        query_date = request.args.get('date')
+        if not query_date:
+            return jsonify({"error": "Missing date parameter"}), 400
+
+        connection = pymysql.connect(
+            host=os.getenv("MYSQL_HOST"),
+            user=os.getenv("MYSQL_USER"),
+            password=os.getenv("MYSQL_PASSWORD"),
+            database=os.getenv("MYSQL_DB"),
+            port=int(os.getenv("MYSQL_PORT")),
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        cur = connection.cursor()
+        cur.execute("SELECT * FROM availability WHERE date = %s", (query_date,))
+        results = cur.fetchall()
+        cur.close()
+        connection.close()
+        return jsonify(results), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/request-appointment', methods=['POST'])
+def request_appointment():
+    try:
+        data = request.get_json()
+        therapist_id = data['therapistId']
+        patient_id = data['patientId']
+        date = data['date']
+        time_slot = data['time_slot']
+
+        connection = pymysql.connect(
+            host=os.getenv("MYSQL_HOST"),
+            user=os.getenv("MYSQL_USER"),
+            password=os.getenv("MYSQL_PASSWORD"),
+            database=os.getenv("MYSQL_DB"),
+            port=int(os.getenv("MYSQL_PORT")),
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        cur = connection.cursor()
+        cur.execute("""
+            INSERT INTO appointments (therapist_id, client_name, date, time_slot, status)
+            VALUES (%s, %s, %s, %s, 'pending')
+        """, (therapist_id, patient_id, date, time_slot))
+        connection.commit()
+        cur.close()
+        connection.close()
+        return jsonify({"message": "Appointment requested!"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5050, debug=True)

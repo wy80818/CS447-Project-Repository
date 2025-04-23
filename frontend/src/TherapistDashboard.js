@@ -1,91 +1,104 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import './TherapistDashboard.css';
+import './TherapistScheduler.css';
 
 const TherapistDashboard = () => {
   const [date, setDate] = useState(new Date());
-  const [startTime, setStartTime] = useState('09:00');
-  const [endTime, setEndTime] = useState('10:00');
-  const [location, setLocation] = useState('');
   const [availability, setAvailability] = useState([]);
+  const [appointments, setAppointments] = useState([]);
 
   const therapistId = localStorage.getItem("userID");
 
-  const addAvailability = () => {
-    if (!startTime || !endTime || !location) {
-      alert('Please complete all fields');
-      return;
+  useEffect(() => {
+    if (therapistId) {
+      fetch(`http://localhost:5050/get-availability/${therapistId}`)
+        .then(res => res.json())
+        .then(data => {
+          const formatted = data.map(item => {
+            const [startTime, endTime] = item.time_slot.split("-");
+            return {
+              date: item.date,
+              startTime,
+              endTime,
+              location: item.location
+            };
+          });
+          setAvailability(formatted);
+        })
+        .catch(err => console.error("Error loading availability:", err));
+
+      fetch(`http://localhost:5050/get-appointments/${therapistId}`)
+        .then(res => res.json())
+        .then(setAppointments)
+        .catch(err => console.error("Error loading appointments:", err));
     }
+  }, [therapistId]);
 
-    const newEntry = {
-      date: date.toISOString().split('T')[0],
-      startTime,
-      endTime,
-      location,
-    };
-
-    setAvailability((prev) => [...prev, newEntry]);
-  };
-
-  const saveAvailability = async () => {
+  const handleAppointment = async (id, decision) => {
     try {
-      const payload = availability.map((entry) => ({
-        therapistId,
-        date: entry.date,
-        location: entry.location,
-        slots: [`${entry.startTime}-${entry.endTime}`],
-      }));
-
-      for (const avail of payload) {
-        await fetch('http://localhost:5050/save-availability', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(avail),
-        });
-      }
-
-      alert('Availability saved!');
-      setAvailability([]);
+      await fetch(`http://localhost:5050/handle-appointment/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ decision })
+      });
+      setAppointments(prev => prev.filter(app => app.id !== id));
     } catch (err) {
-      console.error(err);
-      alert('Error saving availability');
+      console.error('Error handling appointment:', err);
     }
   };
 
   return (
     <div className="dashboard-container">
-      <h1 className="title">Therapist Scheduler</h1>
+      <div className="title-bar">
+        <h1 className="title">Therapist Dashboard</h1>
+        <button className="dashboard-button" onClick={() => window.location.href = '/therapistscheduler'}>
+          Set Availability
+        </button>
+      </div>
       <div className="scheduler-layout">
-        {/* LEFT: Calendar and inputs */}
+        {/* LEFT: Availability calendar */}
         <div className="left-panel">
-          <h2>Select Date</h2>
+          <h2>Your Availability</h2>
           <Calendar
             onChange={setDate}
             value={date}
+            tileContent={({ date, view }) => {
+              const day = date.toISOString().split('T')[0];
+              const matches = availability.filter(avail => avail.date === day);
+              return matches.length > 0 ? (
+                <ul className="calendar-availability">
+                  {matches.map((match, i) => (
+                    <li key={i}>
+                      {match.startTime} - {match.endTime}
+                    </li>
+                  ))}
+                </ul>
+              ) : null;
+            }}
           />
-          <div className="input-group">
-            <label>Start Time:</label>
-            <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-            <label>End Time:</label>
-            <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-            <label>Location:</label>
-            <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} />
-            <button onClick={addAvailability}>Add</button>
-          </div>
         </div>
 
-        {/* RIGHT: Availability preview */}
+        {/* RIGHT: Appointment requests */}
         <div className="right-panel">
-          <h2>Availability Preview</h2>
-          <ul className="availability-list">
-            {availability.map((entry, index) => (
-              <li key={index}>
-                {entry.date}: {entry.startTime} - {entry.endTime} @ {entry.location}
-              </li>
-            ))}
-          </ul>
-          <button onClick={saveAvailability}>Save Availability</button>
+          <h2>Appointment Requests</h2>
+          {appointments.length === 0 ? (
+            <p>No appointment requests at the moment.</p>
+          ) : (
+            <ul className="appointment-list">
+              {appointments.map(app => (
+                <li key={app.id} className="appointment-card">
+                  <p><strong>Date:</strong> {app.date}</p>
+                  <p><strong>Time:</strong> {app.time_slot}</p>
+                  <p><strong>Client:</strong> {app.client_name}</p>
+                  <div className="appointment-actions">
+                    <button onClick={() => handleAppointment(app.id, 'accept')}>Accept</button>
+                    <button onClick={() => handleAppointment(app.id, 'deny')}>Deny</button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </div>

@@ -81,6 +81,7 @@ CREATE TABLE IF NOT EXISTS availability (
   therapist_id INT,
   date DATE,
   location VARCHAR(100),
-  time_slot VARCHAR(20),
+  time_slot VARCHAR(50),
+  status VARCHAR(20) DEFAULT 'pending',
   FOREIGN KEY (therapist_id) REFERENCES therapist(ther_id)
 );
