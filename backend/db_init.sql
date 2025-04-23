@@ -59,9 +59,10 @@ CREATE TABLE IF NOT EXISTS adult_appt  (
     ther_id int,
     apat_id int,
     aappt_type varchar(50) NOT NULL,
-    aappt_date int NOT NULL,
+    aappt_date DATE NOT NULL,
     aappt_duration int NOT NULL,
     aappt_addr varchar(100) NOT NULL,
+    status VARCHAR(20) DEFAULT 'requested',
     FOREIGN KEY (ther_id) REFERENCES therapist(ther_id),
     FOREIGN KEY (apat_id) REFERENCES adult_patient(apat_id)
 );
@@ -70,7 +71,7 @@ CREATE TABLE IF NOT EXISTS under_appt  (
     ther_id int,
     upat_id int,
     uappt_type varchar(50) NOT NULL,
-    uappt_date int NOT NULL,
+    uappt_date DATE NOT NULL,
     uappt_duration int NOT NULL,
     uappt_addr varchar(100) NOT NULL,
     FOREIGN KEY (ther_id) REFERENCES therapist(ther_id),

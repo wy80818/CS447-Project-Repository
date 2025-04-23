@@ -59,15 +59,25 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    color: var(--blue-darker);
+    size: 1rem;
+  }
+
+  .appointment-list strong {
+    color: var(--blue-darker); /* bold label color */
   }
   
   .appointment-card {
-    background-color: var(--blue-light);
-    color: white;
+    background-color: var(--blue); /* a darker blue */
+    color: var(--blue-darkest);
     padding: 10px;
     border-radius: 8px;
   }
   
+  .appointment-card strong{
+    color: var(--blue-darker);  
+  }
+
   .appointment-actions {
     margin-top: 10px;
     display: flex;

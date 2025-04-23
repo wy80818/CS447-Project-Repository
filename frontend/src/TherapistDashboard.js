@@ -8,7 +8,7 @@ const TherapistDashboard = () => {
   const [availability, setAvailability] = useState([]);
   const [appointments, setAppointments] = useState([]);
 
-  const therapistId = sessionStorage.getItem("userID");
+  const therapistId = sessionStorage.getItem("userId");
 
   useEffect(() => {
     if (therapistId) {
@@ -30,7 +30,10 @@ const TherapistDashboard = () => {
 
       fetch(`http://localhost:5050/get-appointments/${therapistId}`)
         .then(res => res.json())
-        .then(setAppointments)
+        .then(data => {
+          console.log("Fetched appointments:", data);
+          setAppointments(data);
+        })
         .catch(err => console.error("Error loading appointments:", err));
     }
   }, [therapistId]);
@@ -81,24 +84,31 @@ const TherapistDashboard = () => {
 
         {/* RIGHT: Appointment requests */}
         <div className="right-panel">
-          <h2>Appointment Requests</h2>
-          {appointments.length === 0 ? (
-            <p>No appointment requests at the moment.</p>
-          ) : (
+        <h2>Appointment Requests</h2>
+        {Array.isArray(appointments) && appointments.filter(app => !app.status || app.status === 'requested').length > 0 ? (
             <ul className="appointment-list">
-              {appointments.map(app => (
-                <li key={app.id} className="appointment-card">
-                  <p><strong>Date:</strong> {app.date}</p>
-                  <p><strong>Time:</strong> {app.time_slot}</p>
-                  <p><strong>Client:</strong> {app.client_name}</p>
-                  <div className="appointment-actions">
-                    <button onClick={() => handleAppointment(app.id, 'accept')}>Accept</button>
-                    <button onClick={() => handleAppointment(app.id, 'deny')}>Deny</button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+                {appointments
+                    .filter(app => !app.status || app.status === 'requested')
+                    .map(app => (
+                        <li 
+                            key={app.id} className="appointment-card"
+                             style={{ color: '#0b1c3c' }}
+                        >
+                        <p><strong style={{ color: '#12345a' }} >Date:</strong> {app.date}</p>
+                        <p><strong style={{ color: '#12345a' }} >Duration:</strong> {app.duration} minutes</p>
+                        <p><strong style={{ color: '#12345a' }} >Type:</strong> {app.appt_type}</p>
+                        <p><strong style={{ color: '#12345a' }} >Location:</strong> {app.location}</p>
+                        <p><strong style={{ color: '#12345a' }} >Client:</strong> {app.client_name}</p>
+                        <div className="appointment-actions">
+                            <button onClick={() => handleAppointment(app.id, 'accept')}>Accept</button>
+                            <button onClick={() => handleAppointment(app.id, 'deny')}>Deny</button>
+                        </div>
+                    </li>
+                ))}
+                </ul>
+            ) : (
+                <p>No appointment requests at the moment.</p>
+            )}
         </div>
       </div>
     </div>
