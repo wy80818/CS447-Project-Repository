@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS administrator  (
 	adm_id int PRIMARY KEY AUTO_INCREMENT,
     adm_name varchar(50) NOT NULL,
     adm_user varchar(50) NOT NULL,
-    adm_pass varchar(50) NOT NULL
+    adm_pass varchar(256) NOT NULL
 );
 CREATE TABLE IF NOT EXISTS therapist  (
 	ther_id int PRIMARY KEY AUTO_INCREMENT,
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS therapist  (
     ther_age int NOT NULL,
     ther_bday DATE NOT NULL,
     ther_user varchar(50) NOT NULL,
-    ther_pass varchar(100) NOT NULL,
+    ther_pass varchar(256) NOT NULL,
     ther_email varchar(50) NOT NULL,
     FOREIGN KEY (adm_id) REFERENCES administrator(adm_id)
 );
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS adult_patient  (
     apat_age int NOT NULL,
     apat_bday DATE NOT NULL,
     apat_user varchar(50) NOT NULL,
-    apat_pass varchar(200) NOT NULL,
+    apat_pass varchar(256) NOT NULL,
     apat_addr varchar(100) NOT NULL,
     apat_insur varchar(50) NOT NULL,
     apat_primcare varchar(50) NOT NULL,
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS under_patient  (
     upat_age int NOT NULL,
     upat_bday DATE NOT NULL,
     upat_user varchar(50) NOT NULL,
-    upat_pass varchar(200) NOT NULL,
+    upat_pass varchar(256) NOT NULL,
     upat_addr varchar(100) NOT NULL,
     upat_insur varchar(50) NOT NULL,
     upat_primcare varchar(50) NOT NULL,
