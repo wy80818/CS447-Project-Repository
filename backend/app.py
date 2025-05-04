@@ -18,6 +18,44 @@ def sha256_hash(string):
     return hash
 
 
+@app.route('/init-extra', methods=['POST'])
+def init_db_extra():
+    try:
+        print("Connecting to MySQL without selecting a DB first...")
+        connection = pymysql.connect(
+            host=os.getenv('MYSQL_HOST', 'localhost'),
+            user=os.getenv('MYSQL_USER', 'root'),
+            password=os.getenv('MYSQL_PASSWORD', '0000'),
+            port=int(os.getenv('MYSQL_PORT', 3306)),
+            autocommit=True
+        )
+
+        cursor = connection.cursor()
+        print("Creating DB if not exists...")
+        cursor.execute("CREATE DATABASE IF NOT EXISTS therapist_scheduler_db;")
+
+        cursor.execute("USE therapist_scheduler_db;")
+
+        print("Reading and executing SQL commands...")
+        with open('db_init_extra.sql', 'r') as f:
+            sql_commands = f.read().split(';')
+
+            for command in sql_commands:
+                command = command.strip()
+                if command:
+                    cursor.execute(command)
+
+        cursor.close()
+        connection.close()
+
+        print("✅ Database and tables initialized!")
+        return jsonify({"message": "Database initialized from .sql file!"}), 200
+
+    except Exception as e:
+        print("❌ Initialization error:", e)
+        return jsonify({"message": f"Failed to initialize database: {e}"}), 500
+
+
 @app.route('/init-db', methods=['POST'])
 def init_db():
     try:
