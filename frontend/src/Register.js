@@ -60,6 +60,7 @@ export default function Register() {
             <option value="therapist">Therapist</option>
             <option value="adult_patient">Adult Patient</option>
             <option value="under_patient">Underage Patient</option>
+            {/* <option value="administrator">Administrator</option> */}
           </select>
           <input
             placeholder="Username"
