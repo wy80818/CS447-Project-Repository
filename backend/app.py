@@ -5,17 +5,41 @@ import pymysql
 import os
 import hashlib
 from datetime import datetime
+from flask_mail import Mail, Message
+from itsdangerous import URLSafeTimedSerializer
+from flask import current_app
+from flask import url_for
 
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
+app.config['MAIL_SERVER'] = os.getenv("MAIL_SERVER")
+app.config['MAIL_PORT'] = int(os.getenv("MAIL_PORT", 587))  # safe default
+app.config['MAIL_USE_TLS'] = os.getenv("MAIL_USE_TLS", "True") == "True"
+app.config['MAIL_USE_SSL'] = os.getenv("MAIL_USE_SSL", "False") == "True"
+app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME")
+app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv("MAIL_USERNAME")  # set sender to username
+
+
+mail = Mail(app)
+s = URLSafeTimedSerializer(os.getenv("SECRET_KEY"))
+
 
 def sha256_hash(string):
     enc = string.encode('utf-8')
     hash = hashlib.sha256(enc).hexdigest()
     return hash
+
+def send_verification_email(data):
+    token = s.dumps(data, salt='email-confirm')
+    verify_link = f"http://localhost:5050/verify/{data['role']}/{token}"
+
+    msg = Message("Confirm your email", recipients=[data["email"]])
+    msg.body = f"Click the link to verify your email: {verify_link}"
+    mail.send(msg)
 
 
 @app.route('/init-extra', methods=['POST'])
@@ -120,7 +144,7 @@ def login():
             cursorclass=pymysql.cursors.DictCursor
         )
         cur = connection.cursor()
-
+        
         for role, user_field, pass_field, id_col in user_roles:
             query = f"SELECT * FROM {role} WHERE {user_field} = %s AND {pass_field} = %s"
             cur.execute(query, (username, password))
@@ -151,24 +175,20 @@ def register():
         if not data:
             return jsonify({"message": "Invalid request"}), 400
 
-        username = data.get('username')
-        password = sha256_hash(data.get('password'))
-        role = data.get('role')
+        data["password"] = sha256_hash(data["password"])
+        send_verification_email(data)
 
-        # Extended fields
-        name = data.get('name')
-        age = data.get('age')
-        birthday = data.get('birthday')
-        address = data.get('address')
-        insurance = data.get('insurance')
-        primary_care = data.get('primaryCare')
-        email = data.get('email')
+        return jsonify({"message": "Verification email sent! Please confirm to complete registration."}), 200
 
-        # Validate role
-        if role not in ["administrator", "therapist", "adult_patient", "under_patient"]:
-            return jsonify({"message": "Invalid role"}), 400
+    except Exception as e:
+        print("Register error:", e)
+        return jsonify({"message": "Server error during registration"}), 500
 
-        # Connect to DB
+@app.route('/verify/<role>/<token>')
+def verify_email(role, token):
+    try:
+        data = s.loads(token, salt='email-confirm', max_age=3600)
+
         connection = pymysql.connect(
             host=os.getenv('MYSQL_HOST', 'localhost'),
             user=os.getenv('MYSQL_USER', 'root'),
@@ -178,55 +198,58 @@ def register():
             cursorclass=pymysql.cursors.DictCursor
         )
         cur = connection.cursor()
+        user_column_map = {
+        "administrator": "adm_user",
+        "therapist": "ther_user",
+        "adult_patient": "apat_user",
+        "under_patient": "upat_user"
+        }
 
-        # Role-based logic
+        user_column = user_column_map.get(role)
+        if not user_column:
+            return jsonify({"message": "Invalid role"}), 400
+
+        user_check_query = f"SELECT * FROM {role} WHERE {user_column} = %s"
+        cur.execute(user_check_query, (data["username"],))
+        if cur.fetchone():
+            return jsonify({"message": "Username already exists"}), 400
+
         if role == "administrator":
-            # Basic admin registration
-            cur.execute("SELECT * FROM administrator WHERE adm_user = %s", (username,))
-            if cur.fetchone():
-                return jsonify({"message": "Username already exists"}), 400
-            cur.execute("INSERT INTO administrator (adm_name, adm_user, adm_pass) VALUES (%s, %s, %s)", (name, username, password))
+            cur.execute("INSERT INTO administrator (adm_name, adm_user, adm_pass, verified) VALUES (%s, %s, %s, 1)",
+                        (data["name"], data["username"], data["password"]))
 
         elif role == "therapist":
-            cur.execute("SELECT * FROM therapist WHERE ther_user = %s", (username,))
-            if cur.fetchone():
-                return jsonify({"message": "Username already exists"}), 400
             cur.execute("""
-                INSERT INTO therapist (ther_name, ther_age, ther_bday, ther_user, ther_pass, ther_email)
-                VALUES (%s, %s, %s, %s, %s, %s)
-            """, (name, age, birthday, username, password, email))
+                INSERT INTO therapist (ther_name, ther_age, ther_bday, ther_user, ther_pass, ther_email, verified)
+                VALUES (%s, %s, %s, %s, %s, %s, 1)
+            """, (data["name"], data["age"], data["birthday"], data["username"], data["password"], data["email"]))
 
         elif role == "adult_patient":
-            cur.execute("SELECT * FROM adult_patient WHERE apat_user = %s", (username,))
-            if cur.fetchone():
-                return jsonify({"message": "Username already exists"}), 400
             cur.execute("""
                 INSERT INTO adult_patient (
                     apat_name, apat_age, apat_bday, apat_user, apat_pass,
-                    apat_addr, apat_insur, apat_primcare, apat_email
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (name, age, birthday, username, password, address, insurance, primary_care, email))
+                    apat_addr, apat_insur, apat_primcare, apat_email, verified
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 1)
+            """, (data["name"], data["age"], data["birthday"], data["username"],
+                  data["password"], data["address"], data["insurance"], data["primaryCare"], data["email"]))
 
         elif role == "under_patient":
-            cur.execute("SELECT * FROM under_patient WHERE upat_user = %s", (username,))
-            if cur.fetchone():
-                return jsonify({"message": "Username already exists"}), 400
             cur.execute("""
                 INSERT INTO under_patient (
                     upat_name, upat_age, upat_bday, upat_user, upat_pass,
-                    upat_addr, upat_insur, upat_primcare, upat_email
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (name, age, birthday, username, password, address, insurance, primary_care, email))
+                    upat_addr, upat_insur, upat_primcare, upat_email, verified
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 1)
+            """, (data["name"], data["age"], data["birthday"], data["username"],
+                  data["password"], data["address"], data["insurance"], data["primaryCare"], data["email"]))
 
         connection.commit()
         cur.close()
         connection.close()
 
-        return jsonify({"message": f"Registered as {role}!"}), 200
+        return "Your email has been verified and your account is now active. You may close this page."
 
     except Exception as e:
-        print("Register error:", e)
-        return jsonify({"message": "Server error during registration"}), 500
+        return f"Verification failed: {str(e)}", 400
 
 @app.route("/save-availability", methods=["POST"])
 def save_availability():
@@ -265,6 +288,7 @@ def save_availability():
     except Exception as e:
         print("Error saving availability:", e)
         return jsonify({"error": "Internal server error"}), 500
+
 
 @app.route("/get-availability/<int:therapist_id>", methods=["GET"])
 def get_availability(therapist_id):
@@ -420,6 +444,8 @@ def request_appointment():
         cur.close()
 
         return jsonify({"message": "Appointment requested!"}), 200
+    
+    
 
     except Exception as e:
         print("❌ DB insert failed:", str(e))
