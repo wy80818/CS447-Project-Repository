@@ -58,6 +58,12 @@ const TherapistDashboard = () => {
         <button className="dashboard-button" onClick={() => window.location.href = '/therapistscheduler'}>
           Set Availability
         </button>
+        <button className='dashboard-button' onClick={() => {
+          sessionStorage.clear();
+          window.location.href = '/';
+        }}>
+          Log Out
+        </button>
       </div>
       <div className="scheduler-layout">
         {/* LEFT: Availability calendar */}
