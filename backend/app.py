@@ -369,6 +369,25 @@ def handle_appointment(appointment_id):
             WHERE aappt_id = %s
         """, (decision, appointment_id))
 
+        if decision == "accept":
+            cur.execute(""" 
+                SELECT ther_id, aappt_date, aappt_duration, aappt_addr
+                FROM adult_appt
+                WHERE aappt_id = %s
+            """, (appointment_id,))
+            appt = cur.fetchone()
+            if appt:
+                # Update availability table
+                cur.execute("""
+                    UPDATE availability
+                    SET status = 'booked'
+                    WHERE therapist_id = %s
+                    AND date = %s
+                    AND location = %s
+                    AND status = 'pending'
+                    LIMIT 1
+                """, (appt['ther_id'], appt['aappt_date'], appt['aappt_addr']))
+
         connection.commit()
         cur.close()
         connection.close()
@@ -392,7 +411,11 @@ def available_appointments():
             cursorclass=pymysql.cursors.DictCursor
         )
         cur = connection.cursor()
-        cur.execute("SELECT * FROM availability WHERE date = %s", (query_date,))
+        cur.execute("""
+            SELECT * FROM availability
+            WHERE date = %s AND status = 'pending'
+        """, (query_date,))
+
         results = cur.fetchall()
         cur.close()
         connection.close()
@@ -445,11 +468,42 @@ def request_appointment():
 
         return jsonify({"message": "Appointment requested!"}), 200
     
-    
-
     except Exception as e:
         print("❌ DB insert failed:", str(e))
         return jsonify({"error": str(e)}), 500
+
+@app.route('/upcoming-appointments', methods=['GET'])
+def get_upcoming_appointments():
+    try:
+        patient_id = request.args.get('patientId')
+        if not patient_id:
+            return jsonify({"error": "Missing patientId"}), 400
+
+        connection = pymysql.connect(
+            host=os.getenv('MYSQL_HOST', 'localhost'),
+            user=os.getenv('MYSQL_USER', 'root'),
+            password=os.getenv('MYSQL_PASSWORD', '0000'),
+            port=int(os.getenv('MYSQL_PORT', 3306)),
+            database=os.getenv('MYSQL_DB', 'therapist_scheduler_db'),
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        cur = connection.cursor()
+
+        cur.execute("""
+            SELECT aappt_date, aappt_type, aappt_duration, aappt_addr, status
+            FROM adult_appt
+            WHERE apat_id = %s AND aappt_date >= CURDATE()
+            ORDER BY aappt_date ASC
+        """, (patient_id,))
+
+        appointments = cur.fetchall()
+        cur.close()
+        connection.close()
+
+        return jsonify(appointments), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 
 if __name__ == '__main__':

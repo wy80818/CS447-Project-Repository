@@ -9,6 +9,8 @@ const APatientDashboard = () => {
   const [requested, setRequested] = useState([]);
   const patientId = sessionStorage.getItem("userId");
   const role = sessionStorage.getItem("userRole");
+  const [upcomingAppointments, setUpcomingAppointments] = useState([]);
+
 
   useEffect(() => {
     if (role !== "adult_patient") {
@@ -23,7 +25,13 @@ const APatientDashboard = () => {
         setAvailableAppointments(data);
       })
       .catch(err => console.error("Error loading appointments:", err));
-  }, [date, role]);
+
+       // Fetch upcoming appointments
+    fetch(`http://localhost:5050/upcoming-appointments?patientId=${patientId}`)
+      .then(res => res.json())
+      .then(data => setUpcomingAppointments(data))
+      .catch(err => console.error("Error loading upcoming appts:", err));
+  }, [date, role, patientId]);
 
   const requestAppointment = async (appointment) => {
     try {
@@ -80,41 +88,58 @@ const APatientDashboard = () => {
       })
     : [];
 
-  return (
-    <div className="dashboard-container">
-      <div className="title-bar">
-        <h1 className="title">Adult Patient Dashboard</h1>
-        <button className="dashboard-button" onClick={() => {
-          sessionStorage.clear();
-          window.location.href = '/';
-        }}>
-          Log Out
-        </button>
-      </div>
-      <div className="scheduler-layout">
-        <div className="left-panel">
-          <h2>Available Appointments</h2>
-          <Calendar onChange={setDate} value={date} />
-          {Array.isArray(filteredAppointments) && filteredAppointments.length > 0 ? (
-            <ul className="availability-list">
-              {filteredAppointments.map((app, index) => (
-                <li key={index}>
-                  {app.date} - {app.time_slot} @ {app.location}
-                  <button 
-                    disabled={requested.some(r => r.date === app.date && r.time_slot === app.time_slot && r.therapist_id === app.therapist_id)}
-                    onClick={() => requestAppointment(app)}>
-                    {requested.some(r => r.date === app.date && r.time_slot === app.time_slot && r.therapist_id === app.therapist_id) ? "Requested" : "Request"}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No appointments available for this day.</p>
-          )}
+    return (
+      <div className="dashboard-container">
+        <div className="title-bar">
+          <h1 className="title">Adult Patient Dashboard</h1>
+          <button className="dashboard-button" onClick={() => {
+            sessionStorage.clear();
+            window.location.href = '/';
+          }}>
+            Log Out
+          </button>
+        </div>
+        <div className="scheduler-layout">
+          {/* LEFT PANEL: Available appointments */}
+          <div className="left-panel">
+            <h2>Available Appointments</h2>
+            <Calendar onChange={setDate} value={date} />
+            {Array.isArray(filteredAppointments) && filteredAppointments.length > 0 ? (
+              <ul className="availability-list">
+                {filteredAppointments.map((app, index) => (
+                  <li key={index}>
+                    {app.date} - {app.time_slot} @ {app.location}
+                    <button 
+                      disabled={requested.some(r => r.date === app.date && r.time_slot === app.time_slot && r.therapist_id === app.therapist_id)}
+                      onClick={() => requestAppointment(app)}>
+                      {requested.some(r => r.date === app.date && r.time_slot === app.time_slot && r.therapist_id === app.therapist_id) ? "Requested" : "Request"}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No appointments available for this day.</p>
+            )}
+          </div>
+    
+          {/* RIGHT PANEL: Upcoming appointments */}
+          <div className="right-panel">
+            <h2>Upcoming Appointments</h2>
+            {upcomingAppointments.length > 0 ? (
+              <ul className="availability-list">
+                {upcomingAppointments.map((appt, idx) => (
+                  <li key={idx}>
+                    {appt.aappt_date} - {appt.aappt_type} for {appt.aappt_duration} min @ {appt.aappt_addr} ({appt.status})
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No upcoming appointments.</p>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };    
 
 export default APatientDashboard;
