@@ -100,3 +100,5 @@ CREATE TABLE IF NOT EXISTS availability (
   status VARCHAR(20) DEFAULT 'pending',
   FOREIGN KEY (therapist_id) REFERENCES therapist(ther_id)
 );
+
+INSERT INTO administrator  (adm_name, adm_user, adm_pass) VALUES ("LOL", "admin", "9af15b336e6a9619928537df30b2e6a2376569fcf9d7e773eccede65606529a0")
