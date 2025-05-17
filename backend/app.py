@@ -41,6 +41,26 @@ def send_verification_email(data):
     msg.body = f"Click the link to verify your email: {verify_link}"
     mail.send(msg)
 
+def send_appointment_confirmation(email, client_name, therapist_name, appt_date, appt_time, appt_location):
+    msg = Message("Appointment Confirmation", recipients=[email])
+    msg.body = f"""
+    Hello {client_name},
+
+    Your appointment has been successfully booked with Dr. {therapist_name}.
+
+    Details of your appointment:
+    - Date: {appt_date}
+    - Time: {appt_time}
+    - Location: {appt_location}
+
+    Please make sure to arrive on time. If you need to reschedule, contact us at least 24 hours in advance.
+
+    Thank you for choosing our service!
+
+    Best regards,
+    Team 6
+    """
+    mail.send(msg)
 
 @app.route('/init-extra', methods=['POST'])
 def init_db_extra():
@@ -387,6 +407,26 @@ def handle_appointment(appointment_id):
                     AND status = 'pending'
                     LIMIT 1
                 """, (appt['ther_id'], appt['aappt_date'], appt['aappt_addr']))
+
+                cur.execute("""
+                    SELECT p.apat_name AS client_name, p.apat_email AS email,
+                        t.ther_name AS therapist_name
+                    FROM adult_appt a
+                    JOIN adult_patient p ON a.apat_id = p.apat_id
+                    JOIN therapist t ON a.ther_id = t.ther_id
+                    WHERE a.aappt_id = %s
+                """, (appointment_id,))
+                details = cur.fetchone()
+
+                if details:
+                    send_appointment_confirmation(
+                        email=details["email"],
+                        client_name=details["client_name"],
+                        therapist_name=details["therapist_name"],
+                        appt_date=appt["aappt_date"],
+                        appt_time=appt["aappt_duration"],  # assuming this is time or time slot
+                        appt_location=appt["aappt_addr"]
+                    )
 
         connection.commit()
         cur.close()
