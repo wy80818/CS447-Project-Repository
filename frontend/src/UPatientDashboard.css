@@ -1,0 +1,75 @@
+/* Outer container */
+.minor-dashboard,
+.upatient-wrapper {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: auto;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #ffffffdd;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Dashboard title */
+.minor-dashboard h1,
+.upatient-wrapper h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #003366;
+}
+
+/* Two-column layout */
+.dashboard-columns {
+  display: flex;
+  gap: 2rem;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+/* Left and right panels */
+.appointment-section,
+.read-only-reminder {
+  flex: 1;
+  background-color: #f9f9f9;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Section headers */
+h2 {
+  font-size: 1.5rem;
+  color: #003366;
+  margin-bottom: 1rem;
+}
+
+/* Appointment list styles */
+.appointment-list,
+.upatient-appointments {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.appointment-list li,
+.upatient-appointments li {
+  background-color: #f4faff;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-left: 5px solid #1976d2;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
+
+.appointment-list li:hover,
+.upatient-appointments li:hover {
+  background-color: #e6f4ff;
+}
+
+/* Empty state */
+.upatient-empty,
+.empty-text {
+  text-align: center;
+  font-style: italic;
+  color: #777;
+}

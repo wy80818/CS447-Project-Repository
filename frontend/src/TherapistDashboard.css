@@ -1,0 +1,109 @@
+:root {
+    --blue-darkest: #0b1c3c;
+    --blue-darker: #12345a;
+    --blue: #235b8c;
+    --blue-light: #6f9ab0;
+    --blue-lightest: #c1d4e3;
+  }
+  
+  .dashboard-container {
+    padding: 20px;
+    background-color: var(--blue-lightest);
+    min-height: 100vh;
+  }
+  
+  .title-bar{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: #c3d5e6; /* matches your palette */
+    border-bottom: 1px solid #a3b8cc;
+  }
+
+  .title{
+    margin: 0;
+  }
+  
+  .scheduler-layout {
+    display: flex;
+    gap: 40px;
+  }
+  
+  .left-panel,
+  .right-panel {
+    flex: 1;
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .left-panel h2,
+  .right-panel h2 {
+    color: var(--blue-darker);
+    margin-bottom: 10px;
+  }
+  
+  .calendar-availability {
+    list-style: none;
+    padding-left: 0;
+    font-size: 0.75rem;
+    color: var(--blue);
+  }
+  
+  .appointment-list {
+    margin-top: 20px;
+    list-style: none;
+    padding-left: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    color: var(--blue-darker);
+    size: 1rem;
+  }
+
+  .appointment-list strong {
+    color: var(--blue-darker); /* bold label color */
+  }
+  
+  .appointment-card {
+    background-color: var(--blue); /* a darker blue */
+    color: var(--blue-darkest);
+    padding: 10px;
+    border-radius: 8px;
+  }
+  
+  .appointment-card strong{
+    color: var(--blue-darker);  
+  }
+
+  .appointment-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+  }
+  
+  .appointment-actions button {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  
+  .appointment-actions button:first-of-type {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  .appointment-actions button:last-of-type {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  .appointment-actions button:hover {
+    opacity: 0.9;
+  }
+  

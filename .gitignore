@@ -1,0 +1,7 @@
+backend/venv/pyvenv.cfg
+/backend/venv
+*.cfg
+/backend
+/backend/venv
+/backend
+backend/venv/pyvenv.cfg
