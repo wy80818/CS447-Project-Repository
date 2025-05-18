@@ -83,7 +83,7 @@ h2 {
 }
 
 .dashboard-button {
-  background-color: #f44336;
+  background-color: #89befa;
   color: white;
   padding: 8px 16px;
   border: none;
@@ -94,5 +94,5 @@ h2 {
 }
 
 .dashboard-button:hover {
-  background-color: #d32f2f;
+  background-color: #7ebef3;
 }

@@ -687,6 +687,52 @@ def get_minor_guardian_appointments(upat_id):
         print("❌ Error fetching minor-linked appointments:", str(e))
         return jsonify({"error": "Internal server error"}), 500
 
+@app.route('/link-underage', methods=['POST'])
+def link_underage():
+    try:
+        data = request.get_json()
+        adult_id = data.get("apat_id")
+        minor_username = data.get("underage_username")
+
+        if not adult_id or not minor_username:
+            return jsonify({"error": "Missing adult ID or underage username"}), 400
+
+        connection = pymysql.connect(
+            host=os.getenv('MYSQL_HOST', 'localhost'),
+            user=os.getenv('MYSQL_USER', 'root'),
+            password=os.getenv('MYSQL_PASSWORD', '0000'),
+            port=int(os.getenv('MYSQL_PORT', 3306)),
+            database=os.getenv('MYSQL_DB', 'therapist_scheduler_db'),
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        cur = connection.cursor()
+
+        # Step 1: Find underage patient by username
+        cur.execute("SELECT upat_id FROM under_patient WHERE upat_user = %s", (minor_username,))
+        minor = cur.fetchone()
+
+        if not minor:
+            cur.close()
+            connection.close()
+            return jsonify({"error": "Underage patient not found"}), 404
+
+        minor_id = minor["upat_id"]
+
+        # Step 2: Insert into relation table
+        cur.execute("""
+            INSERT INTO a_to_u_pat_relation (apat_id, upat_id)
+            VALUES (%s, %s)
+        """, (adult_id, minor_id))
+
+        connection.commit()
+        cur.close()
+        connection.close()
+
+        return jsonify({"message": "Underage patient successfully linked!"}), 200
+
+    except Exception as e:
+        print("Error linking underage:", str(e))
+        return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5050, debug=True)
