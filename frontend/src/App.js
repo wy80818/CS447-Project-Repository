@@ -21,6 +21,9 @@ function App() {
             <Route path="/therapistdashboard" element={<TherapistDashboard />} />
             <Route path="/patientdashboard" element={<APatientDashboard />} />
             <Route path="/minordashboard" element={<UPatientDashboard />} /> {/* ✅ NEW ROUTE */}
+            <Route path="/patientdashboard/:id" element={<APatientDashboard />} />
+            <Route path="/minordashboard/:id" element={<UPatientDashboard />} /> {/* ✅ NEW ROUTE */}
+            {/* Add more routes as needed */}
           </Routes>
         </header>
       </Router>
