@@ -15,26 +15,23 @@ export default function Login() {
       const response = await fetch("http://localhost:5050/login", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // ✅ Save user info to sessionStorage
         sessionStorage.setItem("userRole", data.role);
         sessionStorage.setItem("userId", data.id);
 
-        // ✅ Also save upat_id separately if under_patient
         if (data.role === "under_patient") {
-          localStorage.setItem("upat_id", data.id); // Used by UPatientDashboard
+          localStorage.setItem("upat_id", data.id);
         }
 
         setStatus("✅ " + data.message);
 
-        // ✅ Redirect based on role
         if (data.role === "therapist") {
           navigate("/therapistdashboard");
         } else if (data.role === "adult_patient") {
@@ -61,7 +58,7 @@ export default function Login() {
     <div className="login-wrapper">
       <div className="login-card">
         <div className="login-avatar">
-          <img 
+          <img
             src="https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_1280.png"
             alt="User Avatar"
           />
@@ -84,7 +81,9 @@ export default function Login() {
           />
           <button type="submit">Log In</button>
         </form>
-        <button type="button" onClick={handleRegisterRedirect}>Register</button>
+        <button type="button" onClick={handleRegisterRedirect}>
+          Register
+        </button>
         <p className="login-status">{status}</p>
       </div>
     </div>
