@@ -35,23 +35,37 @@ const TherapistDashboard = () => {
         date: entry.date,
         location: entry.location,
         slots: [`${entry.startTime}-${entry.endTime}`],
-      }));
+    }));
 
-      for (const avail of payload) {
-        await fetch('http://localhost:5050/save-availability', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(avail),
-        });
+    let allSaved = true;
+
+    for (const avail of payload) {
+      const res = await fetch('http://localhost:5050/save-availability', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(avail),
+      });
+
+      if(!res.ok) {
+        const error = await res.json();
+        alert(`Failed to save slot on ${avail.date} at ${avail.time_slot}: ${error.error}`);
+        allSaved = false;
       }
-
-      alert('Availability saved!');
-      setAvailability([]);
+    }
+      if(allSaved) {
+        alert('Availability saved!');
+        setAvailability([]);
+      }
     } catch (err) {
       console.error(err);
       alert('Error saving availability');
     }
   };
+
+  const removeAvailability = (indexToRemove) => {
+    setAvailability(prev => prev.filter((_, index) => index !== indexToRemove));
+  };
+  
 
   return (
     <div className="dashboard-container">
@@ -86,7 +100,11 @@ const TherapistDashboard = () => {
           <ul className="availability-list">
             {availability.map((entry, index) => (
               <li key={index}>
+                <strong>
                 {entry.date}: {entry.startTime} - {entry.endTime} @ {entry.location}
+                </strong>
+                <button 
+                  onClick={() => removeAvailability(index)}>Remove</button>
               </li>
             ))}
           </ul>

@@ -356,6 +356,18 @@ def save_availability():
         cur = connection.cursor()
 
         for slot in slots:
+            # Check for existing availability
+            cur.execute(
+                """
+                SELECT * FROM availability
+                WHERE therapist_id = %s AND date = %s AND time_slot = %s
+                """,
+                (therapist_id, date, slot)
+            )
+            if cur.fetchone():
+                return jsonify({"error": f"Time slot {slot} on {date} already exists!"}), 400
+
+            # If not exists, insert
             cur.execute(
                 """
                 INSERT INTO availability (therapist_id, date, location, time_slot)

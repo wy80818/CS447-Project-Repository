@@ -107,15 +107,41 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    align-items: center;
   }
   
   .availability-list li {
-    background-color: var(--blue-light);
+    display: flex;
+    flex-direction: column; /* Stack content vertically */
+    align-items: center;
+    background-color: #6d9cb4;
+    padding: 10px 20px;
+    margin: 10px 0;
+    border-radius: 12px;
     color: white;
-    padding: 10px;
-    border-radius: 8px;
-    font-size: 0.95rem;
+    font-weight: bold;
+    font-size: 20px;
+    text-align: center;
+    gap: 10px; /* space between text and buttons */
   }
+  
+  
+  .availability-list button {
+    background-color: #255d8b;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.8rem;
+    color: red;
+    cursor: pointer;
+  }
+
+  .availability-list select {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+  }
+  
   
   .right-panel button {
     margin-top: 20px;
