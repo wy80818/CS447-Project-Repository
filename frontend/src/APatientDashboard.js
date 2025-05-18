@@ -10,6 +10,8 @@ const APatientDashboard = () => {
   const [ratingTherapistId, setRatingTherapistId] = useState(null);
   const [ratingValue, setRatingValue] = useState(5);
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
+  const [underageUsername, setUnderageUsername] = useState("");
+  const [linkMessage, setLinkMessage] = useState("");
 
   const patientId = sessionStorage.getItem("userId");
   const role = sessionStorage.getItem("userRole");
@@ -88,6 +90,30 @@ const APatientDashboard = () => {
     }
   };
 
+  const linkUnderagePatient = async () => {
+    try {
+      const res = await fetch("http://localhost:5050/link-underage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          apat_id: patientId,
+          underage_username: underageUsername
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setLinkMessage("✅ " + data.message);
+        setUnderageUsername("");
+      } else {
+        setLinkMessage("❌ " + data.error);
+      }
+    } catch (err) {
+      console.error("Linking failed:", err);
+      setLinkMessage("❌ Server error");
+    }
+  };
+
   const filteredAppointments = Array.isArray(availableAppointments)
     ? availableAppointments.filter(app => {
         const appDate = new Date(app.date).toISOString().split('T')[0];
@@ -109,6 +135,7 @@ const APatientDashboard = () => {
           Log Out
         </button>
       </div>
+
       <div className="scheduler-layout">
         <div className="left-panel">
           <h2>Available Appointments</h2>
@@ -132,6 +159,18 @@ const APatientDashboard = () => {
           ) : (
             <p>No appointments available for this day.</p>
           )}
+
+          <div className="link-underage">
+            <h3>Link Underage Patient</h3>
+            <input
+              type="text"
+              placeholder="Enter underage patient's username"
+              value={underageUsername}
+              onChange={(e) => setUnderageUsername(e.target.value)}
+            />
+            <button onClick={linkUnderagePatient}>Link</button>
+            <p>{linkMessage}</p>
+          </div>
         </div>
 
         <div className="right-panel">
@@ -169,5 +208,3 @@ const APatientDashboard = () => {
 };
 
 export default APatientDashboard;
-// import React, { useState, useEffect } from 'react';
-// import Calendar from 'react-calendar';
