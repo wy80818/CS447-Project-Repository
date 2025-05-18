@@ -5,6 +5,14 @@ import './UPatientDashboard.css';
 export default function UPatientDashboard() {
   const [appointments, setAppointments] = useState([]);
   const upatId = localStorage.getItem("upat_id");
+  const role = sessionStorage.getItem("userRole");
+
+  // Redirect if not logged in as under_patient
+  useEffect(() => {
+    if (role !== "under_patient") {
+      window.location.href = "/";
+    }
+  }, [role]);
 
   useEffect(() => {
     if (!upatId) return;
@@ -22,9 +30,21 @@ export default function UPatientDashboard() {
     fetchAppointments();
   }, [upatId]);
 
+  const handleLogout = () => {
+    sessionStorage.clear();
+    localStorage.removeItem("upat_id");
+    window.location.href = "/";
+  };
+
   return (
     <div className="minor-dashboard">
-      <h1>Minor Patient Dashboard</h1>
+      <div className="title-bar">
+        <h1>Minor Patient Dashboard</h1>
+        <button className="dashboard-button" onClick={handleLogout}>
+          Log Out
+        </button>
+      </div>
+
       <div className="dashboard-columns">
         <div className="appointment-section">
           <h2>Guardian's Appointments</h2>
@@ -44,6 +64,7 @@ export default function UPatientDashboard() {
             </ul>
           )}
         </div>
+
         <div className="read-only-reminder">
           <h2>Notice</h2>
           <p>This view is read-only. You can only view your guardian’s appointments.</p>
