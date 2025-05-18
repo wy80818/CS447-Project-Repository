@@ -38,7 +38,11 @@ def send_verification_email(data):
     verify_link = f"http://localhost:5050/verify/{data['role']}/{token}"
 
     msg = Message("Confirm your email", recipients=[data["email"]])
-    msg.body = f"Click the link to verify your email: {verify_link}"
+    msg.body = (
+        f"You're almost there, {data['name']}!\n\n"
+        f"Click the link below to verify your email:\n\n{verify_link}\n\n"
+        "This link expires in 5 minutes, so don't waste time!"
+    )
     mail.send(msg)
 
 def send_appointment_confirmation(email, client_name, therapist_name, appt_date, appt_time, appt_location):
@@ -50,7 +54,7 @@ def send_appointment_confirmation(email, client_name, therapist_name, appt_date,
 
     Details of your appointment:
     - Date: {appt_date}
-    - Time: {appt_time}
+    - Time: {appt_time} minutes
     - Location: {appt_location}
 
     Please make sure to arrive on time. If you need to reschedule, contact us at least 24 hours in advance.
@@ -195,10 +199,62 @@ def register():
         if not data:
             return jsonify({"message": "Invalid request"}), 400
 
+        username = data.get("username")
+        role = data.get("role")
+        birthday_str = data.get("birthday")
+        age = int(data.get("age", 0))
+        address = data.get("address", "").strip()
+
+        # Validate birthday format
+        try:
+            birthday = datetime.strptime(birthday_str, "%Y-%m-%d")
+        except ValueError:
+            return jsonify({"message": "Invalid birthday format. Use YYYY-MM-DD."}), 400
+
+        today = datetime.today()
+        calculated_age = today.year - birthday.year - ((today.month, today.day) < (birthday.month, birthday.day))
+
+        # Age and role validation
+        if role in ["therapist", "adult_patient"] and calculated_age < 18:
+            return jsonify({"message": f"{role.replace('_', ' ').title()} must be at least 18 years old."}), 400
+        elif role == "under_patient" and calculated_age >= 18:
+            return jsonify({"message": "Underage patient must be under 18 years old."}), 400
+        if age != calculated_age:
+            return jsonify({"message": "Provided age does not match birthday."}), 400
+
+        # Address check for patient roles
+        if role in ["adult_patient", "under_patient"] and not address:
+            return jsonify({"message": "Address is required for patients."}), 400
+
+        # Check for duplicate username
+        connection = pymysql.connect(
+            host=os.getenv('MYSQL_HOST', 'localhost'),
+            user=os.getenv('MYSQL_USER', 'root'),
+            password=os.getenv('MYSQL_PASSWORD', '0000'),
+            port=int(os.getenv('MYSQL_PORT', 3306)),
+            database=os.getenv('MYSQL_DB', 'therapist_scheduler_db'),
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        cur = connection.cursor()
+
+        user_column_map = {
+            "administrator": "adm_user",
+            "therapist": "ther_user",
+            "adult_patient": "apat_user",
+            "under_patient": "upat_user"
+        }
+        user_column = user_column_map.get(role)
+        if not user_column:
+            return jsonify({"message": "Invalid role"}), 400
+
+        user_check_query = f"SELECT * FROM {role} WHERE {user_column} = %s"
+        cur.execute(user_check_query, (username,))
+        if cur.fetchone():
+            return jsonify({"message": "Username already exists"}), 400
+
         data["password"] = sha256_hash(data["password"])
         send_verification_email(data)
-
-        return jsonify({"message": "Verification email sent! Please confirm to complete registration."}), 200
+        return jsonify({"message": "Verification email sent! Please check your inbox. You have 5 minutes to verify."}), 200
 
     except Exception as e:
         print("Register error:", e)
@@ -207,7 +263,7 @@ def register():
 @app.route('/verify/<role>/<token>')
 def verify_email(role, token):
     try:
-        data = s.loads(token, salt='email-confirm', max_age=3600)
+        data = s.loads(token, salt='email-confirm', max_age=300)
 
         connection = pymysql.connect(
             host=os.getenv('MYSQL_HOST', 'localhost'),
@@ -218,21 +274,6 @@ def verify_email(role, token):
             cursorclass=pymysql.cursors.DictCursor
         )
         cur = connection.cursor()
-        user_column_map = {
-        "administrator": "adm_user",
-        "therapist": "ther_user",
-        "adult_patient": "apat_user",
-        "under_patient": "upat_user"
-        }
-
-        user_column = user_column_map.get(role)
-        if not user_column:
-            return jsonify({"message": "Invalid role"}), 400
-
-        user_check_query = f"SELECT * FROM {role} WHERE {user_column} = %s"
-        cur.execute(user_check_query, (data["username"],))
-        if cur.fetchone():
-            return jsonify({"message": "Username already exists"}), 400
 
         if role == "administrator":
             cur.execute("INSERT INTO administrator (adm_name, adm_user, adm_pass, verified) VALUES (%s, %s, %s, 1)",
@@ -266,10 +307,32 @@ def verify_email(role, token):
         cur.close()
         connection.close()
 
-        return "Your email has been verified and your account is now active. You may close this page."
+        return """
+        <html>
+            <head>
+                <title>Verified</title>
+                <script>
+                    let timer = 5;
+                    const interval = setInterval(() => {
+                        document.getElementById("msg").textContent = 
+                            "Verification complete! Redirecting to login in " + timer + " seconds...";
+                        if (timer === 0) {
+                            clearInterval(interval);
+                            window.location.href = 'http://localhost:3000/login';  // Right now is hardcoded, change dynamically later if needed.
+                        }
+                        timer--;
+                    }, 1000);
+                </script>
+            </head>
+            <body>
+                <h2 id="msg">Verification complete! Redirecting to login in 5 seconds...</h2>
+            </body>
+        </html>
+        """
 
     except Exception as e:
-        return f"Verification failed: {str(e)}", 400
+        return f"Verification Expired: {str(e)}", 400
+    
 
 @app.route("/save-availability", methods=["POST"])
 def save_availability():
