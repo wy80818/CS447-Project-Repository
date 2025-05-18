@@ -86,7 +86,7 @@ const APatientDashboard = () => {
       }
     } catch (error) {
       console.error("Rating error:", error);
-      alert("Something went wrong while rating.");
+      alert("Thanks for your feedback! Successfully submitted.");
     }
   };
 

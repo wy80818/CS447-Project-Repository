@@ -733,6 +733,45 @@ def link_underage():
     except Exception as e:
         print("Error linking underage:", str(e))
         return jsonify({"error": "Internal server error"}), 500
+@app.route('/rate-therapist/<int:therapist_id>', methods=['POST'])
+def rate_therapist(therapist_id):
+    try:
+        data = request.get_json()
+        print("DEBUG - Incoming rating payload:", data)  # Debug print
+        rating = data.get("rating")
+
+        if rating is None:
+            return jsonify({"error": "Missing rating value"}), 400
+
+        rating = int(rating)
+        if rating < 1 or rating > 5:
+            return jsonify({"error": "Rating must be between 1 and 5"}), 400
+
+        connection = pymysql.connect(
+            host=os.getenv('MYSQL_HOST', 'localhost'),
+            user=os.getenv('MYSQL_USER', 'root'),
+            password=os.getenv('MYSQL_PASSWORD', '0000'),
+            port=int(os.getenv('MYSQL_PORT', 3306)),
+            database=os.getenv('MYSQL_DB', 'therapist_scheduler_db'),
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        cur = connection.cursor()
+
+        cur.execute("""
+            INSERT INTO therapist_rating (ther_id, rating)
+            VALUES (%s, %s)
+        """, (therapist_id, rating))
+
+        connection.commit()
+        cur.close()
+        connection.close()
+
+        return jsonify({"message": "Rating submitted successfully"}), 200
+
+    except Exception as e:
+        print("❌ Error in /rate-therapist:", str(e))  # Print actual error
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5050, debug=True)
