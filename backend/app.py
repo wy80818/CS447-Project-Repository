@@ -264,6 +264,7 @@ def register():
 def verify_email(role, token):
     try:
         data = s.loads(token, salt='email-confirm', max_age=300)
+        data = s.loads(token, salt='email-confirm')
 
         connection = pymysql.connect(
             host=os.getenv('MYSQL_HOST', 'localhost'),
@@ -607,7 +608,59 @@ def get_upcoming_appointments():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/minor/<int:upat_id>/appointments', methods=['GET'])
+def get_minor_guardian_appointments(upat_id):
+    try:
+        connection = pymysql.connect(
+            host=os.getenv('MYSQL_HOST', 'localhost'),
+            user=os.getenv('MYSQL_USER', 'root'),
+            password=os.getenv('MYSQL_PASSWORD', '0000'),
+            port=int(os.getenv('MYSQL_PORT', 3306)),
+            database=os.getenv('MYSQL_DB', 'therapist_scheduler_db'),
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        cur = connection.cursor()
+
+        # Step 1: Get the adult guardian ID for this minor
+        cur.execute("""
+            SELECT apat_id FROM a_to_u_pat_relation WHERE upat_id = %s
+        """, (upat_id,))
+        relation = cur.fetchone()
+
+        if not relation:
+            cur.close()
+            connection.close()
+            return jsonify([]), 200  # No guardian found for this minor
+
+        apat_id = relation['apat_id']
+
+        # Step 2: Get all appointments for that adult
+        cur.execute("""
+            SELECT 
+                a.aappt_id,
+                a.aappt_date,
+                a.aappt_type,
+                a.aappt_duration,
+                a.aappt_addr,
+                a.status,
+                t.ther_name
+            FROM adult_appt a
+            JOIN therapist t ON a.ther_id = t.ther_id
+            WHERE a.apat_id = %s
+            ORDER BY a.aappt_date DESC
+        """, (apat_id,))
+        appointments = cur.fetchall()
+
+        cur.close()
+        connection.close()
+
+        return jsonify(appointments), 200
+
+    except Exception as e:
+        print("❌ Error fetching minor-linked appointments:", str(e))
+        return jsonify({"error": "Internal server error"}), 500
 
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5050, debug=True)
+
