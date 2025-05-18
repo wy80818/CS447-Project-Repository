@@ -156,7 +156,7 @@ def login():
             ("administrator", "adm_user", "adm_pass", "adm_id"),
             ("therapist", "ther_user", "ther_pass", "ther_id"),
             ("adult_patient", "apat_user", "apat_pass", "apat_id"),
-            ("under_patient", "upat_user", "upat_pass", "uapt_id")
+            ("under_patient", "upat_user", "upat_pass", "upat_id")
         ]
 
         connection = pymysql.connect(
