@@ -40,11 +40,20 @@ const TherapistDashboard = () => {
 
   const handleAppointment = async (id, decision) => {
     try {
-      await fetch(`http://localhost:5050/handle-appointment/${id}`, {
+      const res = await fetch(`http://localhost:5050/handle-appointment/${id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ decision })
       });
+      if (res.status === 409){
+        const err = await res.json();
+        alert(err.error);
+        return;
+      }
+      if(!res.ok){
+        alert("Something went wrong.");
+        return;
+      }
       setAppointments(prev => prev.filter(app => app.id !== id));
     } catch (err) {
       console.error('Error handling appointment:', err);

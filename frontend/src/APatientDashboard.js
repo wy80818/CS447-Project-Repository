@@ -102,14 +102,19 @@ const APatientDashboard = () => {
     <div className="dashboard-container">
       <div className="title-bar">
         <h1 className="title">Adult Patient Dashboard</h1>
-        <button className="dashboard-button" onClick={() => {
-          sessionStorage.clear();
-          window.location.href = '/';
-        }}>
+        <button
+          className="dashboard-button"
+          onClick={() => {
+            sessionStorage.clear();
+            window.location.href = '/';
+          }}
+        >
           Log Out
         </button>
       </div>
+  
       <div className="scheduler-layout">
+        {/* Left Panel: Available Appointments */}
         <div className="left-panel">
           <h2>Available Appointments</h2>
           <Calendar onChange={setDate} value={date} />
@@ -119,12 +124,22 @@ const APatientDashboard = () => {
                 <li key={index}>
                   {app.date} - {app.time_slot} @ {app.location}
                   <button
-                    disabled={requested.some(r => r.date === app.date && r.time_slot === app.time_slot && r.therapist_id === app.therapist_id)}
+                    disabled={requested.some(
+                      (r) =>
+                        r.date === app.date &&
+                        r.time_slot === app.time_slot &&
+                        r.therapist_id === app.therapist_id
+                    )}
                     onClick={() => requestAppointment(app)}
                   >
-                    {requested.some(r => r.date === app.date && r.time_slot === app.time_slot && r.therapist_id === app.therapist_id)
-                      ? "Requested"
-                      : "Request"}
+                    {requested.some(
+                      (r) =>
+                        r.date === app.date &&
+                        r.time_slot === app.time_slot &&
+                        r.therapist_id === app.therapist_id
+                    )
+                      ? 'Requested'
+                      : 'Request'}
                   </button>
                 </li>
               ))}
@@ -133,34 +148,38 @@ const APatientDashboard = () => {
             <p>No appointments available for this day.</p>
           )}
         </div>
-
+  
+        {/* Right Panel: Accepted Upcoming Appointments */}
         <div className="right-panel">
           <h2>Upcoming Appointments</h2>
-          {upcomingAppointments.length > 0 ? (
+          {upcomingAppointments.filter(appt => appt.status === 'accept').length > 0 ? (
             <ul className="availability-list">
-              {upcomingAppointments.map((appt, idx) => (
-                <li key={idx}>
-                  {appt.aappt_date} - {appt.aappt_type} for {appt.aappt_duration} min @ {appt.aappt_addr} ({appt.status})
-                  {appt.status === "accept" && (
-                    <>
-                      <button onClick={() => setRatingTherapistId(appt.therapist_id)}>Rate</button>
-                      {ratingTherapistId === appt.therapist_id && (
-                        <div>
-                          <select value={ratingValue} onChange={(e) => setRatingValue(Number(e.target.value))}>
-                            {[1, 2, 3, 4, 5].map(num => (
-                              <option key={num} value={num}>{num}</option>
-                            ))}
-                          </select>
-                          <button onClick={() => submitRating(appt.therapist_id)}>Submit</button>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </li>
-              ))}
+              {upcomingAppointments
+                .filter((appt) => appt.status === 'accept')
+                .map((appt, idx) => (
+                  <li key={idx}>
+                    {appt.aappt_date} - {appt.aappt_type} for {appt.aappt_duration} min @ {appt.aappt_addr}
+                    <button onClick={() => setRatingTherapistId(appt.therapist_id)}>Rate</button>
+                    {ratingTherapistId === appt.therapist_id && (
+                      <div>
+                        <select
+                          value={ratingValue}
+                          onChange={(e) => setRatingValue(Number(e.target.value))}
+                        >
+                          {[1, 2, 3, 4, 5].map((num) => (
+                            <option key={num} value={num}>
+                              {num}
+                            </option>
+                          ))}
+                        </select>
+                        <button onClick={() => submitRating(appt.therapist_id)}>Submit</button>
+                      </div>
+                    )}
+                  </li>
+                ))}
             </ul>
           ) : (
-            <p>No upcoming appointments.</p>
+            <p>No upcoming accepted appointments.</p>
           )}
         </div>
       </div>

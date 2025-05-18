@@ -472,8 +472,20 @@ def handle_appointment(appointment_id):
                 WHERE aappt_id = %s
             """, (appointment_id,))
             appt = cur.fetchone()
+
             if appt:
-                # Update availability table
+                # Check if there's already an accepted appointment for that time
+                cur.execute("""
+                    SELECT 1 FROM adult_appt
+                    WHERE ther_id = %s AND aappt_date = %s AND aappt_duration = %s
+                    AND status = 'accept' AND aappt_id != %s
+                """, (appt['ther_id'], appt['aappt_date'], appt['aappt_duration'], appointment_id) )
+
+                existing = cur.fetchone()
+                if existing:
+                    return jsonify({"error": "Time slot already booked"}), 409
+
+                # Mark availability as booked
                 cur.execute("""
                     UPDATE availability
                     SET status = 'booked'
@@ -484,6 +496,7 @@ def handle_appointment(appointment_id):
                     LIMIT 1
                 """, (appt['ther_id'], appt['aappt_date'], appt['aappt_addr']))
 
+                # Send confirmation
                 cur.execute("""
                     SELECT p.apat_name AS client_name, p.apat_email AS email,
                         t.ther_name AS therapist_name
@@ -500,7 +513,7 @@ def handle_appointment(appointment_id):
                         client_name=details["client_name"],
                         therapist_name=details["therapist_name"],
                         appt_date=appt["aappt_date"],
-                        appt_time=appt["aappt_duration"],  # assuming this is time or time slot
+                        appt_time=appt["aappt_duration"],
                         appt_location=appt["aappt_addr"]
                     )
 
@@ -508,8 +521,10 @@ def handle_appointment(appointment_id):
         cur.close()
         connection.close()
         return jsonify({"message": f"Appointment {decision}ed successfully"}), 200
+
     except Exception as e:
         return jsonify({"error": "Internal server error"}), 500
+
 
 @app.route('/available-appointments', methods=['GET'])
 def available_appointments():
