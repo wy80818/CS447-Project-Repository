@@ -70,6 +70,57 @@ const APatientDashboard = () => {
     }
   };
 
+const cancelAppointment = async (appointment) => {
+  try {
+    console.log("Attempting to cancel appointment with details:", appointment);
+
+    if (!appointment || !appointment.aappt_addr || !appointment.aappt_duration || !appointment.aappt_type) {
+      alert("Invalid appointment data for cancellation.");
+      return;
+    }
+
+    const response = await fetch('http://localhost:5050/cancel-appointment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        aappt_addr: appointment.aappt_addr,
+        aappt_duration: appointment.aappt_duration,
+        aappt_type: appointment.aappt_type,
+        status: appointment.status,
+        apat_id: patientId
+      }),
+    });
+
+    console.log("Fetch response received:", response);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Server responded with error:", errorData);
+      alert(errorData.error || "Failed to cancel appointment.");
+      return;
+    }
+
+    alert("Appointment cancelled.");
+    
+    // Optionally remove the appointment from state if needed
+    setUpcomingAppointments(prev => prev.filter(a => 
+      !(
+        a.aappt_addr === appointment.aappt_addr &&
+        a.aappt_duration === appointment.aappt_duration &&
+        a.aappt_type === appointment.aappt_type &&
+        a.apat_id === appointment.apat_id
+      )
+    ));
+    
+  } catch (error) {
+    console.error("Network or unexpected error during cancellation:", error);
+    alert("Something went wrong: " + error.message);
+  }
+};
+
+
+
+
   const submitRating = async (therapistId) => {
     try {
       const response = await fetch(`http://localhost:5050/rate-therapist/${therapistId}`, {
@@ -196,8 +247,11 @@ const APatientDashboard = () => {
                 .filter((appt) => appt.status === 'accept')
                 .map((appt, idx) => (
                   <li key={idx}>
-                    {appt.aappt_date} - {appt.aappt_type} for {appt.aappt_duration} min @ {appt.aappt_addr}
+                    {appt.aappt_date} - {appt.aappt_type} for {appt.aappt_duration} min @ {appt.aappt_addr} ({appt.status})
+
+                    <button onClick={() => cancelAppointment(appt)}>Cancel</button>
                     <button onClick={() => setRatingTherapistId(appt.therapist_id)}>Rate</button>
+
                     {ratingTherapistId === appt.therapist_id && (
                       <div>
                         <select

@@ -772,6 +772,63 @@ def rate_therapist(therapist_id):
         print("❌ Error in /rate-therapist:", str(e))  # Print actual error
         return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
+@app.route("/cancel-appointment", methods=["POST"])
+def cancel_appointment():
+    try:
+        data = request.get_json()
+        patient_id = data.get("apat_id") 
+        location = data.get("aappt_addr")
+        duration = data.get("aappt_duration")
+        appt_type = data.get("aappt_type")
+        current_status = data.get("status")
+
+        connection = pymysql.connect(
+            host=os.getenv('MYSQL_HOST', 'localhost'),
+            user=os.getenv('MYSQL_USER', 'root'),
+            password=os.getenv('MYSQL_PASSWORD', '0000'),
+            port=int(os.getenv('MYSQL_PORT', 3306)),
+            database=os.getenv('MYSQL_DB', 'therapist_scheduler_db'),
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        cur = connection.cursor()
+
+        # Match using patient_id and appointment info
+        cur.execute("""
+            SELECT aappt_id, status
+            FROM adult_appt
+            WHERE apat_id = %s
+              AND aappt_addr = %s
+              AND aappt_duration = %s
+              AND aappt_type = %s
+              AND status = %s
+        """, (patient_id, location, duration, appt_type, current_status))
+
+        appt = cur.fetchone()
+        if not appt:
+            return jsonify({"error": "Appointment not found"}), 404
+
+        if appt['status'] == 'cancelled':
+            return jsonify({"message": "Appointment already cancelled"}), 200
+
+        # Cancel the appointment
+        cur.execute("""
+            UPDATE adult_appt
+            SET status = 'cancelled'
+            WHERE aappt_id = %s
+        """, (appt['aappt_id'],))
+
+        connection.commit()
+        cur.close()
+        connection.close()
+
+        return jsonify({"message": "Appointment cancelled successfully."}), 200
+
+    except Exception as e:
+        print("Error cancelling appointment:", e)
+        return jsonify({"error": "Internal server error."}), 500
+
+
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5050, debug=True)
