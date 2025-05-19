@@ -32,7 +32,9 @@ export default function Login() {
 
         setStatus("✅ " + data.message);
 
-        if (data.role === "therapist") {
+        if (data.role === "administrator") {
+          navigate("/admindashboard");
+        } else if (data.role === "therapist") {
           navigate("/therapistdashboard");
         } else if (data.role === "adult_patient") {
           navigate("/patientdashboard");

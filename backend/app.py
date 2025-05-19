@@ -827,6 +827,56 @@ def cancel_appointment():
         print("Error cancelling appointment:", e)
         return jsonify({"error": "Internal server error."}), 500
 
+@app.route('/admin/all-therapists', methods=['GET'])
+def get_all_therapists():
+    try:
+        connection = pymysql.connect(
+            host=os.getenv('MYSQL_HOST', 'localhost'),
+            user=os.getenv('MYSQL_USER', 'root'),
+            password=os.getenv('MYSQL_PASSWORD', '0000'),
+            port=int(os.getenv('MYSQL_PORT', 3306)),
+            database=os.getenv('MYSQL_DB', 'therapist_scheduler_db'),
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        cur = connection.cursor()
+        cur.execute("SELECT ther_id, ther_name, ther_email, verified FROM therapist")
+        therapists = cur.fetchall()
+        cur.close()
+        connection.close()
+        return jsonify(therapists), 200
+    except Exception as e:
+        print("Error fetching therapists:", e)
+        return jsonify({"error": "Internal server error"}), 500
+
+
+
+@app.route('/admin/verify-therapist', methods=['POST'])
+def verify_therapist():
+    try:
+        data = request.get_json()
+        ther_id = data.get('ther_id')
+
+        if not ther_id:
+            return jsonify({"error": "Missing therapist ID"}), 400
+
+        connection = pymysql.connect(
+            host=os.getenv('MYSQL_HOST', 'localhost'),
+            user=os.getenv('MYSQL_USER', 'root'),
+            password=os.getenv('MYSQL_PASSWORD', '0000'),
+            port=int(os.getenv('MYSQL_PORT', 3306)),
+            database=os.getenv('MYSQL_DB', 'therapist_scheduler_db'),
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        cur = connection.cursor()
+        cur.execute("UPDATE therapist SET verified = TRUE WHERE ther_id = %s", (ther_id,))
+        connection.commit()
+        cur.close()
+        connection.close()
+
+        return jsonify({"message": "Therapist verified successfully"}), 200
+    except Exception as e:
+        print("Error verifying therapist:", e)
+        return jsonify({"error": "Internal server error"}), 500
 
 
 

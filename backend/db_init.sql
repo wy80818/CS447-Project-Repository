@@ -113,7 +113,6 @@ CREATE TABLE IF NOT EXISTS therapist_rating (
   FOREIGN KEY (ther_id) REFERENCES therapist(ther_id) ON DELETE CASCADE
 );
 
+-- ✅ Default administrator (you can log in with this)
 INSERT INTO administrator (adm_name, adm_user, adm_pass)
 VALUES ("LOL", "admin", "9af15b336e6a9619928537df30b2e6a2376569fcf9d7e773eccede65606529a0");
-INSERT INTO therapist (adm_id, ther_name, ther_age, ther_bday, ther_user, ther_pass, ther_email)
-VALUES (1, "John Doe", 30, "1993-01-01", "johndoe", "9af15b336e6a9619928537df30b2e6a2376569fcf9d7e773eccede65606529a0", "johndoe@example.com");

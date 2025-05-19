@@ -6,7 +6,8 @@ import Register from './Register';
 import TherapistScheduler from "./TherapistScheduler";
 import TherapistDashboard from './TherapistDashboard';
 import APatientDashboard from './APatientDashboard';
-import UPatientDashboard from './UPatientDashboard'; // ✅ NEW IMPORT
+import UPatientDashboard from './UPatientDashboard';
+import AdminDashboard from './AdminDashboard'; // ✅ NEW IMPORT
 
 function App() {
   return (
@@ -20,10 +21,10 @@ function App() {
             <Route path="/therapistscheduler" element={<TherapistScheduler />} />
             <Route path="/therapistdashboard" element={<TherapistDashboard />} />
             <Route path="/patientdashboard" element={<APatientDashboard />} />
-            <Route path="/minordashboard" element={<UPatientDashboard />} /> {/* ✅ NEW ROUTE */}
+            <Route path="/minordashboard" element={<UPatientDashboard />} />
             <Route path="/patientdashboard/:id" element={<APatientDashboard />} />
-            <Route path="/minordashboard/:id" element={<UPatientDashboard />} /> {/* ✅ NEW ROUTE */}
-            {/* Add more routes as needed */}
+            <Route path="/minordashboard/:id" element={<UPatientDashboard />} />
+            <Route path="/admindashboard" element={<AdminDashboard />} /> {/* ✅ NEW ROUTE */}
           </Routes>
         </header>
       </Router>
